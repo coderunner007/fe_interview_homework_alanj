@@ -10,7 +10,7 @@
 	});
 </script>
 
-<main class="grid h-screen grid-cols-[50px_1fr]">
+<main class="h-screen">
 	<LinkSidebar />
 	<Timeline />
 </main>

@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 enum TaskStatus {
 	IN_PROGRESS = 'in_progress',
@@ -8,7 +8,7 @@ enum TaskStatus {
 	NO_STATUS = 'no_status',
 }
 
-export type Task = {
+type ApiTask = {
 	// daily_estimated_minutes: null;
 	// created_by: 7160699;
 	// is_last_repetition: false;
@@ -23,7 +23,7 @@ export type Task = {
 	// end_time: null;
 	// task_type: 'user_created';
 	// estimate_type: 'daily';
-	// name: 'Alan';
+	name: string;
 	// original_repeated_task_id: null;
 	// estimated_minutes: 0;
 	// attachments: [];
@@ -38,9 +38,9 @@ export type Task = {
 	// estimate_skips_weekend: true;
 	done: boolean;
 	// done_checklist_items_count: 0;
-	timeline_segment_id: null;
-	color: 30;
-	tracked: false;
+	// timeline_segment_id: null;
+	color: number;
+	// tracked: false;
 	// plan_status_position: null;
 	// has_notes: boolean;
 	// weight: number;
@@ -49,14 +49,22 @@ export type Task = {
 	// tracking: null;
 };
 
-export const tasks = writable([]);
+export type Task = {
+	assignee: string;
+	endDate: Date;
+	startDate: Date;
+	status: TaskStatus;
+	color: number;
+};
+
+export const tasks: Writable<Array<Task>> = writable([]);
 
 async function getTasks(
 	workspaceId: number,
 	teamId: number,
 	since: Date,
 	until: Date
-) {
+): Promise<Array<ApiTask>> {
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json; charset=utf-8');
 	headers.append(
@@ -97,6 +105,16 @@ getTasks(
 	getDateAfterNumberOfDays(new Date(Date.now()), 7)
 ).then(function updateStoreAfterFetch(responseJson) {
 	tasks.update((value) => {
-		return [...value, ...responseJson];
+		return [...value, ...responseJson.map(fromApi)];
 	});
 });
+
+function fromApi(apiTask: ApiTask): Task {
+	return {
+		assignee: apiTask.name,
+		startDate: new Date(apiTask.start_date),
+		endDate: new Date(apiTask.end_date),
+		status: apiTask.status,
+		color: apiTask.color,
+	};
+}

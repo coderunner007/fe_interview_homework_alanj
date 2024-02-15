@@ -8,7 +8,8 @@
 	}
 </style>
 
-<section class="grid grid-rows-[60px_1fr]">
+<section
+	class="ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
 	<TimelineNavigator />
-	<div class="timeline-grid h-full w-full"></div>
+	<div class="timeline-grid h-full w-[200vw]"></div>
 </section>
