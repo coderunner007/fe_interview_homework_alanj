@@ -49,6 +49,54 @@ export type Task = {
 	// tracking: null;
 };
 
-const tasks = writable([]);
+export const tasks = writable([]);
 
-function getTasks() {}
+async function getTasks(
+	workspaceId: number,
+	teamId: number,
+	since: Date,
+	until: Date
+) {
+	const headers = new Headers();
+	headers.append('Content-Type', 'application/json; charset=utf-8');
+	headers.append(
+		'authorization',
+		'Bearer eyJhbGciOiJFZERTQSIsImtpZCI6IjIwMjMtMDctMjUiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsicGxhbiJdLCJleHAiOjE3MDgwMzc3NzcsImlhdCI6MTcwODAzNDE3NywiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy50b2dnbC5zcGFjZSIsImp0aSI6ImMyZjYwMGZiZTFjZmFmMzM1MTYxNmM4ZTM0MjgzOWVhIiwibmJmIjoxNzA4MDMzODc3LCJzdWIiOiJESDg3UzJrU25KUFZtRXNqckxHMkNMIn0.WbLd6dhCl69WS2aN5DsBKkw0qcDSSvh1MLAvoIYa71FPVpfish_IHLqgdP9v_-tBuJLZMDEa0OM8LJG4wSPwDA'
+	);
+
+	const response = await fetch(
+		`https://api.plan.toggl.space/api/v6-rc1/${workspaceId}/tasks?since=${getFormattedDateString(since)}&until=${getFormattedDateString(until)}&short=true&team=${teamId}`,
+		{
+			method: 'GET',
+			headers,
+		}
+	);
+
+	return response.json();
+}
+
+function getFormattedDateString(date: Date) {
+	return [
+		date.getFullYear(),
+		`${date.getMonth() + 1}`.padStart(2, '0'),
+		`${date.getDate()}`.padStart(2, '0'),
+	].join('-');
+}
+
+function getDateAfterNumberOfDays(date: Date, noOfDays: number) {
+	const newDate = new Date(date.getTime());
+	newDate.setDate(newDate.getDate() + noOfDays);
+
+	return newDate;
+}
+
+getTasks(
+	733259,
+	715990,
+	getDateAfterNumberOfDays(new Date(Date.now()), -7),
+	getDateAfterNumberOfDays(new Date(Date.now()), 7)
+).then(function updateStoreAfterFetch(responseJson) {
+	tasks.update((value) => {
+		return [...value, ...responseJson];
+	});
+});
