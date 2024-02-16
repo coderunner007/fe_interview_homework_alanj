@@ -10,7 +10,7 @@
 	});
 </script>
 
-<main class="h-screen">
+<main class="h-screen font-sans">
 	<LinkSidebar />
 	<Timeline />
 </main>

@@ -6,7 +6,6 @@ export type DatesForAPIRequest = {
 export class GridDates {
 	static widthOfTimelineGridDateInPixels = 54;
 	static #minimumNumberOfDatesToBeDisplayed: number = 14;
-	numberOfDatesToBeDisplayed: number;
 	#startDate?: Date;
 	#endDate?: Date;
 	#nextStartDate: Date;
@@ -14,15 +13,10 @@ export class GridDates {
 	#displayedDates: Array<Date>;
 
 	constructor(scrollWidthOfGridContainer: number) {
-		this.numberOfDatesToBeDisplayed = this.#getNumberOfDatesToBeDisplayed(
-			scrollWidthOfGridContainer
-		);
-		this.#nextStartDate = this.#getInitialStartDate(
-			this.numberOfDatesToBeDisplayed
-		);
-		this.#nextEndDate = this.#getInitialEndDate(
-			this.numberOfDatesToBeDisplayed
-		);
+		const numberOfDatesToBeDisplayed =
+			this.#getNumberOfDatesToBeDisplayedInitially(scrollWidthOfGridContainer);
+		this.#nextStartDate = this.#getInitialStartDate(numberOfDatesToBeDisplayed);
+		this.#nextEndDate = this.#getInitialEndDate(numberOfDatesToBeDisplayed);
 		this.#displayedDates = [];
 	}
 
@@ -72,10 +66,6 @@ export class GridDates {
 		);
 	}
 
-	static #areDatesEqual(date1: Date, date2: Date): boolean {
-		return date1.toDateString() == date2.toDateString();
-	}
-
 	getDatesForAPIRequest(): DatesForAPIRequest {
 		return {
 			since: GridDates.#copyDate(this.#nextStartDate),
@@ -114,28 +104,17 @@ export class GridDates {
 		};
 	}
 
-	static #copyDate(date: Date) {
-		const copiedDate = new Date(date.getTime());
-
-		return copiedDate;
-	}
-
-	#getNumberOfDatesToBeDisplayed(scrollWidthOfGridContainer: number): number {
-		const numberOfDatesToBeDisplayedAccordingToScreenSize =
-			this.#getNumberOfDatesToBeDisplayedAccordingToScreenSize(
-				scrollWidthOfGridContainer
-			);
+	#getNumberOfDatesToBeDisplayedInitially(
+		scrollWidthOfGridContainer: number
+	): number {
+		const numberOfDatesToBeDisplayedAccordingToScreenSize = Math.ceil(
+			scrollWidthOfGridContainer / GridDates.widthOfTimelineGridDateInPixels
+		);
 
 		return numberOfDatesToBeDisplayedAccordingToScreenSize <
 			GridDates.#minimumNumberOfDatesToBeDisplayed
 			? GridDates.#minimumNumberOfDatesToBeDisplayed
 			: numberOfDatesToBeDisplayedAccordingToScreenSize;
-	}
-
-	#getNumberOfDatesToBeDisplayedAccordingToScreenSize(
-		scrollWidthOfGridContainer: number
-	): number {
-		return Math.ceil(scrollWidthOfGridContainer / 54);
 	}
 
 	#getInitialStartDate(totalNumberOfDates: number): Date {
@@ -153,5 +132,15 @@ export class GridDates {
 		today.setDate(today.getDate() + Math.ceil(totalNumberOfDates / 2));
 
 		return today;
+	}
+
+	static #copyDate(date: Date) {
+		const copiedDate = new Date(date.getTime());
+
+		return copiedDate;
+	}
+
+	static #areDatesEqual(date1: Date, date2: Date): boolean {
+		return date1.toDateString() == date2.toDateString();
 	}
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import TimelineNavigator from './TimelineNavigator.svelte';
-	import { populateTasks, tasks } from './stores';
-	import { GridDates } from './dates';
+	import { populateTasks } from './stores';
+	import { GridDates, type DatesForAPIRequest } from './dates';
 	import TimelineDateRow from './TimelineDateRow.svelte';
 
 	let timelineGrid: HTMLElement;
@@ -10,39 +10,17 @@
 	let gridDates: GridDates;
 	let displayedDates: Array<Date> = [];
 	const dateRowHeight: number = 40;
-	onMount(async function getTasksForInitialPeriod() {
+	onMount(function getTasksForInitialPeriod() {
 		timelineWidth = timelineGrid.scrollWidth;
 		gridDates = new GridDates(timelineWidth);
-		try {
-			const datesForApiRequest = gridDates.getDatesForAPIRequest();
-			console.log(datesForApiRequest);
-			await populateTasks(datesForApiRequest.since, datesForApiRequest.until);
 
-			displayedDates = gridDates.getDisplayedDatesOnAPIResponseSuccess();
-			timelineWidth = gridDates.getOptimumDisplayedGridWidth();
-		} catch (err) {
-			console.log('Timeline', err);
-		}
+		populateTasksAndUpdate(gridDates.getDatesForAPIRequest());
 	});
 
-	async function fetchBeginning() {
+	async function populateTasksAndUpdate(
+		datesForApiRequest: DatesForAPIRequest
+	) {
 		try {
-			const datesForApiRequest =
-				gridDates.getOneMonthEarlierDatesForAPIRequest();
-			console.log(datesForApiRequest);
-			await populateTasks(datesForApiRequest.since, datesForApiRequest.until);
-
-			displayedDates = gridDates.getDisplayedDatesOnAPIResponseSuccess();
-			timelineWidth = gridDates.getOptimumDisplayedGridWidth();
-		} catch (err) {
-			console.log('Timeline', err);
-		}
-	}
-
-	async function fetchEnd() {
-		try {
-			const datesForApiRequest = gridDates.getOneMonthLaterDatesForAPIRequest();
-			console.log(datesForApiRequest);
 			await populateTasks(datesForApiRequest.since, datesForApiRequest.until);
 
 			displayedDates = gridDates.getDisplayedDatesOnAPIResponseSuccess();
@@ -56,8 +34,15 @@
 <section
 	class="ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
 	<div class="w-full border-b border-b-slate-300">
-		<button on:click={fetchBeginning}>Previous 30 days</button>
-		<button on:click={fetchEnd}>Next 30 days</button>
+		<button
+			on:click={() =>
+				populateTasksAndUpdate(
+					gridDates.getOneMonthEarlierDatesForAPIRequest()
+				)}>Previous 30 days</button>
+		<button
+			on:click={() =>
+				populateTasksAndUpdate(gridDates.getOneMonthLaterDatesForAPIRequest())}
+			>Next 30 days</button>
 	</div>
 	<TimelineNavigator>
 		<!-- <svelte:fragment slot="events">

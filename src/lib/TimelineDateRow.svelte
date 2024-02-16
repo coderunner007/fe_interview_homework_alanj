@@ -13,9 +13,30 @@
 		'Friday',
 		'Saturday',
 	];
+	const monthsOfTheYear: Array<string> = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December',
+	];
 </script>
 
 {#each displayedDates as date, idx (date.getTime())}
+	{#if date.getDate() == 1}
+		<div
+			style:left={`${idx * GridDates.widthOfTimelineGridDateInPixels}px`}
+			class="absolute top-0 h-1 text-xs uppercase text-fuchsia-950">
+			{monthsOfTheYear[date.getMonth()]}
+		</div>
+	{/if}
 	<div
 		class="absolute top-0 flex items-center justify-center"
 		style:left={`${idx * GridDates.widthOfTimelineGridDateInPixels}px`}
