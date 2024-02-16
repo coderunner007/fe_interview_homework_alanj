@@ -1,5 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import TimelineNavigator from './TimelineNavigator.svelte';
+	import { getDateAfterNumberOfDays } from './utils';
+	import { populateTasks } from './stores';
+
+	onMount(function getTasksForInitialPeriod() {
+		populateTasks(
+			getDateAfterNumberOfDays(new Date(Date.now()), -7),
+			getDateAfterNumberOfDays(new Date(Date.now()), 7)
+		);
+	});
 </script>
 
 <style>
