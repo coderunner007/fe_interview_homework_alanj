@@ -27,15 +27,37 @@ export class GridDates {
 	}
 
 	getDisplayedDatesOnAPIResponseSuccess(): Array<Date> {
-		// First API response, hence populate the displayed dates
-		// completely
-		if (!this.#startDate && !this.#endDate) {
+		if (!this.#startDate || !this.#endDate) {
+			// First API response, hence populate the displayed dates
+			// completely
 			let currentDate = GridDates.#copyDate(this.#nextStartDate);
 			while (!GridDates.#areDatesEqual(currentDate, this.#nextEndDate)) {
 				this.#displayedDates.push(currentDate);
 				currentDate = GridDates.#copyDate(currentDate);
 				currentDate.setDate(currentDate.getDate() + 1);
 			}
+		} else if (!GridDates.#areDatesEqual(this.#endDate, this.#nextEndDate)) {
+			// One month later API response, hence add dates to the end
+			let currentDate = GridDates.#copyDate(this.#endDate);
+			while (!GridDates.#areDatesEqual(currentDate, this.#nextEndDate)) {
+				this.#displayedDates.push(currentDate);
+				currentDate = GridDates.#copyDate(currentDate);
+				currentDate.setDate(currentDate.getDate() + 1);
+			}
+		} else {
+			// One month earlier API response, hence add dates to the start
+			let currentDate = GridDates.#copyDate(this.#nextStartDate);
+			let oneMonthEarlierDisplayedDates = [];
+			while (!GridDates.#areDatesEqual(currentDate, this.#startDate)) {
+				oneMonthEarlierDisplayedDates.push(currentDate);
+				currentDate = GridDates.#copyDate(currentDate);
+				currentDate.setDate(currentDate.getDate() + 1);
+			}
+
+			this.#displayedDates = [
+				...oneMonthEarlierDisplayedDates,
+				...this.#displayedDates,
+			];
 		}
 
 		this.#endDate = GridDates.#copyDate(this.#nextEndDate);
@@ -70,7 +92,7 @@ export class GridDates {
 		// Adjust for monday since the grid will be
 		// misaligned if the the starting position is not monday
 		this.#nextStartDate.setDate(
-			this.#startDate.getDate() + (1 - this.#startDate.getDay())
+			this.#nextStartDate.getDate() + (1 - this.#nextStartDate.getDay())
 		);
 
 		return {
