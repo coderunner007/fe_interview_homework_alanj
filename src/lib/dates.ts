@@ -1,6 +1,135 @@
-export let widthOfTimelineGridDateInPixels = 54;
-export function getNumberOfDatesToBeDisplayed(
-	timelineGridWidth: number
-): number {
-	return Math.ceil(timelineGridWidth / 54);
+export type DatesForAPIRequest = {
+	since: Date;
+	until: Date;
+};
+
+export class GridDates {
+	static widthOfTimelineGridDateInPixels = 54;
+	static #minimumNumberOfDatesToBeDisplayed: number = 14;
+	numberOfDatesToBeDisplayed: number;
+	#startDate?: Date;
+	#endDate?: Date;
+	#nextStartDate: Date;
+	#nextEndDate: Date;
+	#displayedDates: Array<Date>;
+
+	constructor(scrollWidthOfGridContainer: number) {
+		this.numberOfDatesToBeDisplayed = this.#getNumberOfDatesToBeDisplayed(
+			scrollWidthOfGridContainer
+		);
+		this.#nextStartDate = this.#getInitialStartDate(
+			this.numberOfDatesToBeDisplayed
+		);
+		this.#nextEndDate = this.#getInitialEndDate(
+			this.numberOfDatesToBeDisplayed
+		);
+		this.#displayedDates = [];
+	}
+
+	getDisplayedDatesOnAPIResponseSuccess(): Array<Date> {
+		// First API response, hence populate the displayed dates
+		// completely
+		if (!this.#startDate && !this.#endDate) {
+			let currentDate = GridDates.#copyDate(this.#nextStartDate);
+			while (!GridDates.#areDatesEqual(currentDate, this.#nextEndDate)) {
+				this.#displayedDates.push(currentDate);
+				currentDate = GridDates.#copyDate(currentDate);
+				currentDate.setDate(currentDate.getDate() + 1);
+			}
+		}
+
+		this.#endDate = GridDates.#copyDate(this.#nextEndDate);
+		this.#startDate = GridDates.#copyDate(this.#nextStartDate);
+
+		return this.#displayedDates;
+	}
+
+	getOptimumDisplayedGridWidth(): number {
+		return (
+			this.#displayedDates.length * GridDates.widthOfTimelineGridDateInPixels
+		);
+	}
+
+	static #areDatesEqual(date1: Date, date2: Date): boolean {
+		return date1.toDateString() == date2.toDateString();
+	}
+
+	getDatesForAPIRequest(): DatesForAPIRequest {
+		return {
+			since: GridDates.#copyDate(this.#nextStartDate),
+			until: GridDates.#copyDate(this.#nextEndDate),
+		};
+	}
+
+	getOneMonthEarlierDatesForAPIRequest(): DatesForAPIRequest {
+		if (!this.#endDate || !this.#startDate) {
+			throw Error('Only invoke this method after the first API call');
+		}
+		this.#nextStartDate = GridDates.#copyDate(this.#startDate);
+		this.#nextStartDate.setMonth(this.#startDate.getMonth() - 1);
+		// Adjust for monday since the grid will be
+		// misaligned if the the starting position is not monday
+		this.#nextStartDate.setDate(
+			this.#startDate.getDate() + (1 - this.#startDate.getDay())
+		);
+
+		return {
+			since: GridDates.#copyDate(this.#nextStartDate),
+			until: GridDates.#copyDate(this.#startDate),
+		};
+	}
+
+	getOneMonthLaterDatesForAPIRequest(): DatesForAPIRequest {
+		if (!this.#endDate || !this.#startDate) {
+			throw Error('Only invoke this method after the first API call');
+		}
+		this.#nextEndDate = GridDates.#copyDate(this.#endDate);
+		this.#nextEndDate.setMonth(this.#endDate.getMonth() + 1);
+
+		return {
+			since: GridDates.#copyDate(this.#endDate),
+			until: GridDates.#copyDate(this.#nextEndDate),
+		};
+	}
+
+	static #copyDate(date: Date) {
+		const copiedDate = new Date(date.getTime());
+
+		return copiedDate;
+	}
+
+	#getNumberOfDatesToBeDisplayed(scrollWidthOfGridContainer: number): number {
+		const numberOfDatesToBeDisplayedAccordingToScreenSize =
+			this.#getNumberOfDatesToBeDisplayedAccordingToScreenSize(
+				scrollWidthOfGridContainer
+			);
+
+		return numberOfDatesToBeDisplayedAccordingToScreenSize <
+			GridDates.#minimumNumberOfDatesToBeDisplayed
+			? GridDates.#minimumNumberOfDatesToBeDisplayed
+			: numberOfDatesToBeDisplayedAccordingToScreenSize;
+	}
+
+	#getNumberOfDatesToBeDisplayedAccordingToScreenSize(
+		scrollWidthOfGridContainer: number
+	): number {
+		return Math.ceil(scrollWidthOfGridContainer / 54);
+	}
+
+	#getInitialStartDate(totalNumberOfDates: number): Date {
+		const today = new Date();
+		today.setDate(today.getDate() - Math.floor(totalNumberOfDates / 2));
+		// Adjust for monday since the grid will be
+		// misaligned if the the starting position is not monday
+		today.setDate(today.getDate() + (1 - today.getDay()));
+
+		return today;
+	}
+
+	#getInitialEndDate(totalNumberOfDates: number): Date {
+		const today = new Date();
+		today.setDate(today.getDate() + Math.ceil(totalNumberOfDates / 2));
+
+		return today;
+	}
 }

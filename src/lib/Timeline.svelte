@@ -1,39 +1,47 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import TimelineNavigator from './TimelineNavigator.svelte';
-	import { getDateAfterNumberOfDays } from './utils';
 	import { populateTasks, tasks } from './stores';
-	import { getNumberOfDatesToBeDisplayed } from './dates';
+	import { GridDates } from './dates';
+	import TimelineDateRow from './TimelineDateRow.svelte';
 
 	let timelineGrid: HTMLElement;
 	let timelineWidth = NaN;
-	onMount(function getTasksForInitialPeriod() {
+	let gridDates;
+	let displayedDates: Array<Date> = [];
+	const dateRowHeight: number = 40;
+	onMount(async function getTasksForInitialPeriod() {
 		timelineWidth = timelineGrid.scrollWidth;
-		console.log(getNumberOfDatesToBeDisplayed(timelineWidth));
-		populateTasks(
-			getDateAfterNumberOfDays(new Date(Date.now()), -7),
-			getDateAfterNumberOfDays(new Date(Date.now()), 7)
-		);
+		gridDates = new GridDates(timelineWidth);
+		try {
+			const datesForApiRequest = gridDates.getDatesForAPIRequest();
+			console.log(datesForApiRequest);
+			await populateTasks(datesForApiRequest.since, datesForApiRequest.until);
+
+			displayedDates = gridDates.getDisplayedDatesOnAPIResponseSuccess();
+			timelineWidth = gridDates.getOptimumDisplayedGridWidth();
+		} catch (err) {
+			console.log('Timeline', err);
+		}
 	});
 </script>
 
 <section
-	class="relative ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
+	class="ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
 	<div class="w-full border-b border-b-slate-300">Timeline Navigator</div>
 	<TimelineNavigator>
-		<svelte:fragment slot="events">
+		<!-- <svelte:fragment slot="events">
 			{#each $tasks as task (task.id)}
 				<div>{task.id}, {task.name}</div>
 			{/each}
-		</svelte:fragment>
+		</svelte:fragment> -->
 		<svelte:fragment slot="dates">
-			{#each $tasks as task (task.id)}
-				<div>{task.id}, {task.name}</div>
-			{/each}
+			<TimelineDateRow {displayedDates} {dateRowHeight} />
 		</svelte:fragment>
 		<div
 			slot="grid"
-			class="timeline-grid h-full"
+			class="timeline-grid h-full border-t border-slate-300"
+			style:margin-top={`${dateRowHeight}px`}
 			style:width={!isNaN(timelineWidth) ? `${timelineWidth}px` : ''}
 			bind:this={timelineGrid}>
 		</div>
