@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import TimelineNavigator from './TimelineNavigator.svelte';
-	import { populateTasks } from './stores';
+	import { populateTasks, tasks } from './stores';
 	import { GridDates, type DatesForAPIRequest } from './dates';
 	import TimelineDateRow from './TimelineDateRow.svelte';
+	import TimelineEvents from './TimelineEvents.svelte';
 
 	let timelineGrid: HTMLElement;
 	let timelineWidth = NaN;
@@ -46,21 +46,14 @@
 				populateTasksAndUpdate(gridDates.getOneMonthLaterDatesForAPIRequest())}
 			>Next 30 days</button>
 	</div>
-	<TimelineNavigator>
-		<!-- <svelte:fragment slot="events">
-			{#each $tasks as task (task.id)}
-				<div>{task.id}, {task.name}</div>
-			{/each}
-		</svelte:fragment> -->
-		<svelte:fragment slot="dates">
-			<TimelineDateRow {displayedDates} {dateRowHeight} />
-		</svelte:fragment>
+	<div class="relative">
+		<TimelineDateRow {displayedDates} {dateRowHeight} />
 		<div
-			slot="grid"
 			class="timeline-grid h-full border-t border-slate-300"
 			style:margin-top={`${dateRowHeight}px`}
 			style:width={!isNaN(timelineWidth) ? `${timelineWidth}px` : ''}
 			bind:this={timelineGrid}>
 		</div>
-	</TimelineNavigator>
+		<TimelineEvents tasks={$tasks} />
+	</div>
 </section>

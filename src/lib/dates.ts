@@ -41,7 +41,7 @@ export class GridDates {
 		} else {
 			// One month earlier API response, hence add dates to the start
 			let currentDate = GridDates.#copyDate(this.#nextStartDate);
-			let oneMonthEarlierDisplayedDates = [];
+			const oneMonthEarlierDisplayedDates = [];
 			while (!GridDates.#areDatesEqual(currentDate, this.#startDate)) {
 				oneMonthEarlierDisplayedDates.push(currentDate);
 				currentDate = GridDates.#copyDate(currentDate);
