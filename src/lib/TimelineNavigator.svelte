@@ -1,1 +1,5 @@
-<div class="w-full border-b border-b-slate-300">Timeline Navigator</div>
+<section>
+	<slot name="dates" />
+	<slot name="events" />
+	<slot name="grid" />
+</section>

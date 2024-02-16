@@ -2,9 +2,13 @@
 	import { onMount } from 'svelte';
 	import TimelineNavigator from './TimelineNavigator.svelte';
 	import { getDateAfterNumberOfDays } from './utils';
-	import { populateTasks } from './stores';
+	import { populateTasks, tasks } from './stores';
 
+	let timelineGrid: HTMLElement;
+	let timelineWidth = NaN;
 	onMount(function getTasksForInitialPeriod() {
+		console.log(timelineWidth);
+		timelineWidth = timelineGrid.scrollWidth;
 		populateTasks(
 			getDateAfterNumberOfDays(new Date(Date.now()), -7),
 			getDateAfterNumberOfDays(new Date(Date.now()), 7)
@@ -12,14 +16,25 @@
 	});
 </script>
 
-<style>
-	.timeline-grid {
-		background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXoAAAAYCAYAAAD06zZ1AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAF5SURBVHhe7dgxDoJQEEBBaI2tJt7/cCbaGlqNHsBQ8jZjTfHJLMuT9XF/vq+3y7oM+7mvFiivntfpfGodesdpt9e2TLyv1QO2Q/9Al/A6EMaOo0z2mrgQLfodQ32kSyY/YP6BHWnS/p9l8hxa9J05VPQdq99JJy8OL7DOMH7n0KLveFn0HSuLPmY1/cVs0XcG0qLvWFn0MSuLvgfmG33MzCeOFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoemKKPmSnEFhivnpei75gp+o6Voo9ZKfoe2NSi/wBnAoS/JFJzhwAAAABJRU5ErkJggg==');
-	}
-</style>
-
 <section
-	class="ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
-	<TimelineNavigator />
-	<div class="timeline-grid h-full w-[200vw]"></div>
+	class="relative ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
+	<div class="w-full border-b border-b-slate-300">Timeline Navigator</div>
+	<TimelineNavigator>
+		<svelte:fragment slot="events">
+			{#each $tasks as task (task.id)}
+				<div>{task.id}, {task.name}</div>
+			{/each}
+		</svelte:fragment>
+		<svelte:fragment slot="dates">
+			{#each $tasks as task (task.id)}
+				<div>{task.id}, {task.name}</div>
+			{/each}
+		</svelte:fragment>
+		<div
+			slot="grid"
+			class="timeline-grid h-full"
+			style:width={!isNaN(timelineWidth) ? `${timelineWidth}px` : ''}
+			bind:this={timelineGrid}>
+		</div>
+	</TimelineNavigator>
 </section>

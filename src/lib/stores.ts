@@ -11,7 +11,7 @@ export enum TaskStatus {
 
 export type Task = {
 	id: number;
-	assignee: string;
+	name: string;
 	endDate: Date;
 	startDate: Date;
 	status: TaskStatus;
@@ -31,7 +31,7 @@ export async function populateTasks(since: Date, until: Date) {
 function fromApi(apiTask: ApiTask): Task {
 	return {
 		id: apiTask.id,
-		assignee: apiTask.name,
+		name: apiTask.name,
 		startDate: new Date(apiTask.start_date),
 		endDate: new Date(apiTask.end_date),
 		status: apiTask.status,
