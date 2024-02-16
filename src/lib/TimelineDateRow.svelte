@@ -27,6 +27,15 @@
 		'November',
 		'December',
 	];
+
+	function getDisplayedDateCustomStyle(date: Date) {
+		// For weekends
+		if (date.getDay() == 0 || date.getDay() == 6) {
+			return 'text-slate-500';
+		} else {
+			return '';
+		}
+	}
 </script>
 
 {#each displayedDates as date, idx (date.getTime())}
@@ -38,7 +47,9 @@
 		</div>
 	{/if}
 	<div
-		class="absolute top-0 flex items-center justify-center"
+		class="absolute top-0 flex items-center justify-center text-sm {getDisplayedDateCustomStyle(
+			date
+		)}"
 		style:left={`${idx * GridDates.widthOfTimelineGridDateInPixels}px`}
 		style:width={`${GridDates.widthOfTimelineGridDateInPixels}px`}
 		style:height={`${dateRowHeight}px`}>
