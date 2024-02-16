@@ -3,12 +3,13 @@
 	import TimelineNavigator from './TimelineNavigator.svelte';
 	import { getDateAfterNumberOfDays } from './utils';
 	import { populateTasks, tasks } from './stores';
+	import { getNumberOfDatesToBeDisplayed } from './dates';
 
 	let timelineGrid: HTMLElement;
 	let timelineWidth = NaN;
 	onMount(function getTasksForInitialPeriod() {
-		console.log(timelineWidth);
 		timelineWidth = timelineGrid.scrollWidth;
+		console.log(getNumberOfDatesToBeDisplayed(timelineWidth));
 		populateTasks(
 			getDateAfterNumberOfDays(new Date(Date.now()), -7),
 			getDateAfterNumberOfDays(new Date(Date.now()), 7)
