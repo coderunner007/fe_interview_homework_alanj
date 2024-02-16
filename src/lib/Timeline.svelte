@@ -35,11 +35,13 @@
 	class="ml-14 grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
 	<div class="w-full border-b border-b-slate-300">
 		<button
+			class="absolute left-[60px]"
 			on:click={() =>
 				populateTasksAndUpdate(
 					gridDates.getOneMonthEarlierDatesForAPIRequest()
 				)}>Previous 30 days</button>
 		<button
+			class="absolute right-0"
 			on:click={() =>
 				populateTasksAndUpdate(gridDates.getOneMonthLaterDatesForAPIRequest())}
 			>Next 30 days</button>

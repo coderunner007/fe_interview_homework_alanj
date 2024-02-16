@@ -39,7 +39,7 @@
 </script>
 
 {#each displayedDates as date, idx (date.getTime())}
-	{#if date.getDate() == 1}
+	{#if date.getDate() == 1 || !idx}
 		<div
 			style:left={`${idx * GridDates.widthOfTimelineGridDateInPixels}px`}
 			class="absolute top-0 h-1 text-xs uppercase text-fuchsia-950">
