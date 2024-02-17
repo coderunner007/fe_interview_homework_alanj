@@ -2,9 +2,9 @@
 	import Timeline from './lib/Timeline.svelte';
 	import LinkSidebar from './lib/LinkSidebar.svelte';
 	import { onMount } from 'svelte';
-	import { tasks } from './lib/stores';
+	import { tasksStore } from './lib/stores';
 
-	tasks.subscribe((value) => console.log(value));
+	tasksStore.subscribe((value) => console.log(value));
 	onMount(function exitLoadingScreen() {
 		document.body.setAttribute('data-loaded', 'true');
 	});

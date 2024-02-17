@@ -18,6 +18,7 @@
 	id="sidebar"
 	class="fixed left-0 flex h-screen w-14 flex-col items-center bg-purple-950">
 	<a
+		aria-label="Go to Toggl Plan Home"
 		class="logo m-3 h-6 w-6"
 		href="https://plan.toggl.com"
 		target="_blank"

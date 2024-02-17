@@ -1,6 +1,6 @@
-import { writable, type Writable } from 'svelte/store';
-import { getTasks, type APITask } from './api';
-import { mergeDateRanges } from './dates';
+import { derived, writable, type Readable, type Writable } from 'svelte/store';
+import { fromAPI, getTasks } from './api';
+import { getMergedDateRange } from './dates';
 
 export enum TaskStatus {
 	IN_PROGRESS = 'in_progress',
@@ -17,9 +17,10 @@ export type Task = {
 	startDate: Date;
 	status: TaskStatus;
 	color: number;
+	weight: number;
 };
 
-type IdToTask = Record<string, Task>;
+export type IdToTask = Record<string, Task>;
 
 export type DateRange = {
 	since: Date;
@@ -27,47 +28,53 @@ export type DateRange = {
 };
 
 export type TasksFromAPI = {
+	tasks: IdToTask;
 	dateRange: DateRange;
 };
 
-export const tasks: Writable<TasksFromAPI | undefined> = writable();
+const tasksFromAPIStore: Writable<TasksFromAPI | undefined> = writable();
+export const uncommitedTasks: Writable<IdToTask> = writable({});
+export const tasksStore: Readable<TasksFromAPI | undefined> = derived(
+	[tasksFromAPIStore, uncommitedTasks],
+	([$tasksFromAPIStore, $uncommitedTasks], set) => {
+		if ($tasksFromAPIStore) {
+			set({
+				tasks: {
+					...$tasksFromAPIStore.tasks,
+					...$uncommitedTasks,
+				},
+				dateRange: $tasksFromAPIStore.dateRange,
+			});
+		}
+	}
+);
 
 export async function populateTasks(dateRange: DateRange) {
 	try {
 		const tasksResponse = await getTasks(dateRange.since, dateRange.until);
 
-		tasks.update(function populateStoreAfterResponse(
+		tasksFromAPIStore.update(function populateStoreAfterResponse(
 			currentTasksFromAPI: TasksFromAPI | undefined
 		) {
+			const updatedDateRange = getMergedDateRange(
+				dateRange,
+				currentTasksFromAPI?.dateRange,
+				true
+			);
+
+			if (!updatedDateRange) {
+				throw Error('API returned non-contiguous date ranges');
+			}
+
 			return {
-				...(currentTasksFromAPI || {}),
-				...fromAPI(tasksResponse),
-				dateRange: mergeDateRanges(
-					dateRange,
-					currentTasksFromAPI?.dateRange
-				) as DateRange,
+				tasks: {
+					...(currentTasksFromAPI?.tasks || {}),
+					...fromAPI(tasksResponse),
+				},
+				dateRange: updatedDateRange,
 			};
 		});
 	} catch (e) {
 		throw e;
 	}
-}
-
-function fromAPI(apiTasks: Array<APITask>): IdToTask {
-	return apiTasks.reduce(function updateStoreAfterAPIResponse(
-		storeUpdate: IdToTask,
-		apiTask: APITask
-	) {
-		return {
-			...storeUpdate,
-			[apiTask.id]: {
-				id: apiTask.id,
-				name: apiTask.name,
-				startDate: new Date(apiTask.start_date),
-				endDate: new Date(apiTask.end_date),
-				status: apiTask.status as TaskStatus,
-				color: apiTask.color,
-			},
-		};
-	}, {} as IdToTask);
 }
