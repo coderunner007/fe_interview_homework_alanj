@@ -1,153 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+	DAYS_OF_THE_WEEK,
 	copyDate,
 	dateDifference,
-	daysOfTheWeek,
 	generateDatesForDateRange,
 	getDateRangeForAPIRequest,
 	getDateRangeForInitialAPIRequest,
-	mergeDateRanges,
+	getMergedDateRange,
 } from './dates';
 import type { DateRange } from './stores';
-
-describe('mergeDateRanges', () => {
-	it('returns undefined if no arguments passed', () => {
-		expect(mergeDateRanges()).toBeUndefined();
-	});
-
-	it('returns valid date range if one of the arguments is falsy', () => {
-		const validDateRange = {
-			since: new Date(),
-			until: new Date(),
-		};
-		expect(mergeDateRanges(validDateRange)).toEqual(validDateRange);
-		expect(mergeDateRanges(undefined, validDateRange)).toEqual(validDateRange);
-	});
-
-	it('returns valid date range if the arguments can be merged & overlap by one day', () => {
-		// Populate with random dates
-		const validDateRange1 = {
-			since: new Date(2023, 1, 23),
-			until: new Date(2023, 5, 7),
-		};
-		// Populate with random dates that is
-		// continues on from the previous range
-		const validDateRange2 = {
-			since: new Date(2023, 5, 7),
-			until: new Date(2024, 1, 1),
-		};
-
-		const mergedDateRange = mergeDateRanges(validDateRange1, validDateRange2);
-		expect(mergedDateRange).toBeDefined();
-		expect((mergedDateRange as DateRange).since.toDateString()).toEqual(
-			validDateRange1.since.toDateString()
-		);
-		expect((mergedDateRange as DateRange).until.toDateString()).toEqual(
-			validDateRange2.until.toDateString()
-		);
-	});
-
-	it("returns valid date range if the arguments can be merged & don't overlap", () => {
-		// Populate with random dates
-		const validDateRange1 = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 10, 7),
-		};
-		// Populate with random dates that is
-		// continues on from the previous range
-		const validDateRange2 = {
-			since: new Date(2023, 10, 8),
-			until: new Date(2024, 1, 1),
-		};
-
-		const mergedDateRange = mergeDateRanges(validDateRange1, validDateRange2);
-		expect(mergedDateRange).toBeDefined();
-		expect((mergedDateRange as DateRange).since.toDateString()).toEqual(
-			validDateRange1.since.toDateString()
-		);
-		expect((mergedDateRange as DateRange).until.toDateString()).toEqual(
-			validDateRange2.until.toDateString()
-		);
-	});
-
-	it('returns date range agnostic of the order of the arguments', () => {
-		// Populate with random dates
-		const validDateRange1 = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 10, 7),
-		};
-		// Populate with random dates that is
-		// continues on from the previous range
-		const validDateRange2 = {
-			since: new Date(2023, 10, 8),
-			until: new Date(2024, 1, 1),
-		};
-
-		const mergedDateRange = mergeDateRanges(validDateRange1, validDateRange2);
-		const mergedDateRangeOrderReversed = mergeDateRanges(
-			validDateRange2,
-			validDateRange1
-		);
-		expect(mergedDateRange).toBeDefined();
-		expect(mergedDateRangeOrderReversed).toBeDefined();
-		expect((mergedDateRange as DateRange).since.toDateString()).toEqual(
-			validDateRange1.since.toDateString()
-		);
-		expect(
-			(mergedDateRangeOrderReversed as DateRange).since.toDateString()
-		).toEqual(validDateRange1.since.toDateString());
-		expect((mergedDateRange as DateRange).until.toDateString()).toEqual(
-			validDateRange2.until.toDateString()
-		);
-		expect(
-			(mergedDateRangeOrderReversed as DateRange).until.toDateString()
-		).toEqual(validDateRange2.until.toDateString());
-	});
-
-	it('throws exception if dates cannot be merged, agnostic of the order of arguments', () => {
-		// Populate with random dates
-		const validDateRange = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 10, 7),
-		};
-		// Populate with random dates that is DOES NOT
-		// continues on from the previous range
-		const validButNonContiguousDateRange = {
-			since: new Date(2023, 11, 8),
-			until: new Date(2024, 1, 1),
-		};
-
-		expect(() =>
-			mergeDateRanges(validDateRange, validButNonContiguousDateRange)
-		).toThrowError('Date ranges cannot be merged');
-		expect(() =>
-			mergeDateRanges(validButNonContiguousDateRange, validDateRange)
-		).toThrowError('Date ranges cannot be merged');
-	});
-
-	it('throws exception if the arguments can be merged but have an overlap of more than one day', () => {
-		// Populate with random dates
-		const validDateRange = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 10, 7),
-		};
-		// Populate with random dates that is overlapping
-		// but more than one day
-		const validButNonContiguousDateRange = {
-			since: new Date(2023, 10, 5),
-			until: new Date(2024, 1, 1),
-		};
-
-		expect(() =>
-			mergeDateRanges(validDateRange, validButNonContiguousDateRange)
-		).toThrowError('Date ranges cannot be merged');
-		expect(() =>
-			mergeDateRanges(validButNonContiguousDateRange, validDateRange)
-		).toThrowError('Date ranges cannot be merged');
-		// TODO
-		// expect('Need to fix the code so this test fails').toBeFalsy();
-	});
-});
 
 describe('generateDatesForDateRange', () => {
 	it('returns list of dates with length equal to (difference in range + 1) if range is valid', () => {
@@ -245,13 +106,17 @@ describe('getDateRangeForInitialAPIRequest', () => {
 
 		const dateRange = getDateRangeForInitialAPIRequest(lengthOfDateRange);
 
-		expect(dateRange.since.getDay()).toEqual(daysOfTheWeek.indexOf('Monday'));
+		expect(dateRange.since.getDay()).toEqual(
+			DAYS_OF_THE_WEEK.indexOf('Monday')
+		);
 
 		// Set date seed as next day
 		vi.setSystemTime(new Date(2023, 10, 2));
 		const dateRange2 = getDateRangeForInitialAPIRequest(lengthOfDateRange);
 
-		expect(dateRange2.since.getDay()).toEqual(daysOfTheWeek.indexOf('Monday'));
+		expect(dateRange2.since.getDay()).toEqual(
+			DAYS_OF_THE_WEEK.indexOf('Monday')
+		);
 		vi.useRealTimers();
 	});
 
@@ -269,7 +134,9 @@ describe('getDateRangeForInitialAPIRequest', () => {
 			dateCellWidthOnGrid
 		);
 
-		expect(dateRange.since.getDay()).toEqual(daysOfTheWeek.indexOf('Monday'));
+		expect(dateRange.since.getDay()).toEqual(
+			DAYS_OF_THE_WEEK.indexOf('Monday')
+		);
 
 		// Set date seed as next day
 		vi.setSystemTime(new Date(2023, 10, 2));
@@ -279,7 +146,9 @@ describe('getDateRangeForInitialAPIRequest', () => {
 			dateCellWidthOnGrid
 		);
 
-		expect(dateRange2.since.getDay()).toEqual(daysOfTheWeek.indexOf('Monday'));
+		expect(dateRange2.since.getDay()).toEqual(
+			DAYS_OF_THE_WEEK.indexOf('Monday')
+		);
 		vi.useRealTimers();
 	});
 });
@@ -371,5 +240,266 @@ describe('getDateRangeForAPIRequest', () => {
 		expect(() =>
 			getDateRangeForAPIRequest(lengthOfDateRange, referenceDateRange, true)
 		).toThrowError('Invalid date range');
+	});
+});
+
+describe('getMergedDateRange', () => {
+	it('returns valid date range if second date range argument is not passed', () => {
+		const validDateRange = {
+			since: new Date(2023, 1, 23),
+			until: new Date(2023, 5, 7),
+		};
+
+		expect(getMergedDateRange(validDateRange)).toBeDefined();
+		expect(getMergedDateRange(validDateRange)?.since.toDateString()).toEqual(
+			validDateRange.since.toDateString()
+		);
+		expect(getMergedDateRange(validDateRange)?.until.toDateString()).toEqual(
+			validDateRange.until.toDateString()
+		);
+	});
+
+	it('returns valid date range if the arguments can be merged & overlap by one day', () => {
+		// Populate with random dates
+		const validDateRange1 = {
+			since: new Date(2023, 1, 23),
+			until: new Date(2023, 5, 7),
+		};
+		// Populate with random dates that is
+		// continues on from the previous range
+		const validDateRange2 = {
+			since: new Date(2023, 5, 7),
+			until: new Date(2024, 1, 1),
+		};
+
+		const actual = getMergedDateRange(validDateRange1, validDateRange2);
+
+		expect(actual).toBeDefined();
+		expect((actual as DateRange).since.toDateString()).toEqual(
+			validDateRange1.since.toDateString()
+		);
+		expect((actual as DateRange).until.toDateString()).toEqual(
+			validDateRange2.until.toDateString()
+		);
+	});
+
+	it('returns undefined if arguments are adjacent but not overlapping & mergeAdjacentDates is false', () => {
+		// Populate with random dates
+		const validDateRange1 = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 10, 7),
+		};
+		// Populate with random dates that is
+		// continues on from the previous range
+		const validDateRange2 = {
+			since: new Date(2023, 10, 8),
+			until: new Date(2024, 1, 1),
+		};
+
+		const actual = getMergedDateRange(validDateRange1, validDateRange2, false);
+
+		expect(actual).toBeUndefined();
+	});
+
+	it('returns valid date range if arguments are adjacent but not overlapping & mergeAdjacentDates is true', () => {
+		// Populate with random dates
+		const validDateRange1 = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 10, 7),
+		};
+		// Populate with random dates that is
+		// continues on from the previous range
+		const validDateRange2 = {
+			since: new Date(2023, 10, 8),
+			until: new Date(2024, 1, 1),
+		};
+
+		const actual = getMergedDateRange(validDateRange1, validDateRange2, true);
+
+		expect((actual as DateRange).since.toDateString()).toEqual(
+			validDateRange1.since.toDateString()
+		);
+		expect((actual as DateRange).until.toDateString()).toEqual(
+			validDateRange2.until.toDateString()
+		);
+	});
+
+	it('returns valid date range agnostic of the order of the arguments', () => {
+		// Populate with random dates
+		const validDateRange1 = {
+			since: new Date(2023, 1, 23),
+			until: new Date(2023, 5, 7),
+		};
+		// Populate with random dates that is
+		// continues on from the previous range
+		const validDateRange2 = {
+			since: new Date(2023, 5, 7),
+			until: new Date(2024, 1, 1),
+		};
+
+		const actual = getMergedDateRange(validDateRange1, validDateRange2);
+		const mergedDateRangeOrderReversed = getMergedDateRange(
+			validDateRange2,
+			validDateRange1
+		);
+
+		expect(actual).toBeDefined();
+		expect(mergedDateRangeOrderReversed).toBeDefined();
+		expect((actual as DateRange).since.toDateString()).toEqual(
+			validDateRange1.since.toDateString()
+		);
+		expect(
+			(mergedDateRangeOrderReversed as DateRange).since.toDateString()
+		).toEqual(validDateRange1.since.toDateString());
+		expect((actual as DateRange).until.toDateString()).toEqual(
+			validDateRange2.until.toDateString()
+		);
+		expect(
+			(mergedDateRangeOrderReversed as DateRange).until.toDateString()
+		).toEqual(validDateRange2.until.toDateString());
+	});
+
+	it('returns undefined if dates cannot be merged, agnostic of order of arguments', () => {
+		// Populate with random dates
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 10, 7),
+		};
+		// Populate with random dates that is DOES NOT
+		// continues on from the previous range
+		const validButNonContiguousDateRange = {
+			since: new Date(2023, 11, 8),
+			until: new Date(2024, 1, 1),
+		};
+
+		expect(
+			getMergedDateRange(validDateRange, validButNonContiguousDateRange)
+		).toBeUndefined();
+		expect(
+			getMergedDateRange(validButNonContiguousDateRange, validDateRange)
+		).toBeUndefined();
+	});
+
+	it('returns merged date range if the date ranges are intersecting agnostic of order of arguments', () => {
+		// Populate with random dates
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 10, 7),
+		};
+		// Populate with random dates that is overlapping
+		// but more than one day
+		const validDateRange2 = {
+			since: new Date(2023, 9, 5),
+			until: new Date(2024, 1, 1),
+		};
+		const expected = {
+			since: validDateRange.since,
+			until: validDateRange2.until,
+		};
+
+		const actual = getMergedDateRange(validDateRange, validDateRange2);
+		const actualReversed = getMergedDateRange(validDateRange2, validDateRange);
+
+		expect(actual).toBeDefined();
+		expect(actual?.since.toDateString()).toEqual(expected.since.toDateString());
+		expect(actual?.until.toDateString()).toEqual(expected.until.toDateString());
+		expect(actualReversed).toBeDefined();
+		expect(actualReversed?.since.toDateString()).toEqual(
+			expected.since.toDateString()
+		);
+		expect(actualReversed?.until.toDateString()).toEqual(
+			expected.until.toDateString()
+		);
+	});
+
+	it('returns valid date range if one date range subset of another', () => {
+		// Populate with random dates
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 10, 7),
+		};
+		// Populate with random dates that is overlapping
+		// but more than one day
+		const encloseDateRange = {
+			since: new Date(2023, 4, 5),
+			until: new Date(2023, 7, 1),
+		};
+		const expected = validDateRange;
+
+		const actual = getMergedDateRange(validDateRange, encloseDateRange);
+
+		expect(actual).toBeDefined();
+		expect(actual?.since.toDateString()).toEqual(expected.since.toDateString());
+		expect(actual?.until.toDateString()).toEqual(expected.until.toDateString());
+	});
+
+	it('throws error if date ranges are invalid', () => {
+		const invalidDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 1, 7),
+		};
+		const invalidDateRange2 = {
+			since: new Date(2023, 4, 5),
+			until: new Date(2023, 2, 1),
+		};
+
+		expect(() =>
+			getMergedDateRange(invalidDateRange, invalidDateRange2)
+		).toThrowError('Invalid date range');
+	});
+
+	it('returns valid date range if both date ranges are the same', () => {
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 1, 7),
+		};
+
+		const actual = getMergedDateRange(validDateRange);
+
+		expect(actual).toBeDefined();
+		expect(actual?.since.toDateString()).toEqual(
+			validDateRange.since.toDateString()
+		);
+		expect(actual?.until.toDateString()).toEqual(
+			validDateRange.until.toDateString()
+		);
+	});
+
+	it('returns valid date range if both date ranges are same & has length of one day', () => {
+		const validDateRange = {
+			since: new Date(2023, 1, 7),
+			until: new Date(2023, 1, 7),
+		};
+
+		const actual = getMergedDateRange(validDateRange, validDateRange);
+
+		expect(actual).toBeDefined();
+		expect(actual?.since.toDateString()).toEqual(
+			validDateRange.since.toDateString()
+		);
+		expect(actual?.until.toDateString()).toEqual(
+			validDateRange.until.toDateString()
+		);
+	});
+
+	it('returns valid date range if an argument has a date range length of one day', () => {
+		const validDateRange = {
+			since: new Date(2023, 1, 7),
+			until: new Date(2023, 1, 20),
+		};
+		const enclosedDateRangeOfOneDayLength = {
+			since: new Date(2023, 1, 7),
+			until: new Date(2023, 1, 7),
+		};
+		const expected = validDateRange;
+
+		const actual = getMergedDateRange(
+			validDateRange,
+			enclosedDateRangeOfOneDayLength
+		);
+
+		expect(actual).toBeDefined();
+		expect(actual?.since.toDateString()).toEqual(expected.since.toDateString());
+		expect(actual?.until.toDateString()).toEqual(expected.until.toDateString());
 	});
 });

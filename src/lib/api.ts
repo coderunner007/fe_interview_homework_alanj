@@ -1,4 +1,125 @@
-import type { TaskStatus } from './stores';
+import type { IdToTask, TaskStatus } from './stores';
+
+export type APITask = {
+	// daily_estimated_minutes: null;
+	// created_by: 7160699;
+	// is_last_repetition: false;
+	// color_id: 30;
+	// updated_at: '2024-02-15T18:22:53.336949';
+	// repetition_rule: null;
+	// tag_ids: [];
+	// visible_properties: ['estimate', 'notes'];
+	// plan_id: null;
+	// folder_id: null;
+	id: number;
+	// end_time: null;
+	// task_type: 'user_created';
+	// estimate_type: 'daily';
+	name: string;
+	// original_repeated_task_id: null;
+	// estimated_minutes: 0;
+	// attachments: [];
+	// workspace_members: [7160699];
+	// created_at: '2024-02-15T18:19:18.314719';
+	// parent_id: null;
+	// total_checklist_items_count: 0;
+	end_date: string;
+	start_date: string;
+	status: TaskStatus;
+	// comments: [];
+	// estimate_skips_weekend: true;
+	done: boolean;
+	// done_checklist_items_count: 0;
+	// timeline_segment_id: null;
+	color: number;
+	// tracked: false;
+	// plan_status_position: null;
+	// has_notes: boolean;
+	weight: number;
+	// start_time: null;
+	// updated_by: 7160699;
+	// tracking: null;
+};
+export async function getTasks(
+	since: Date,
+	until: Date
+): Promise<Array<APITask>> {
+	const headers = new Headers();
+	const detailsForAPIRequest = getDetailsForAPIRequest();
+
+	// return mockResponse();
+	if (
+		!detailsForAPIRequest.teamId ||
+		!detailsForAPIRequest.token ||
+		!detailsForAPIRequest.workspaceId
+	) {
+		throw Error('Please set teamId, workspaceId & token in localStorage');
+	}
+
+	headers.append('Content-Type', 'application/json; charset=utf-8');
+	headers.append('authorization', detailsForAPIRequest.token);
+
+	try {
+		const response = await fetch(
+			`https://api.plan.toggl.space/api/v6-rc1/${detailsForAPIRequest.workspaceId}/tasks?since=${toAPIDateString(since)}&until=${toAPIDateString(until)}&short=true&team=${detailsForAPIRequest.teamId}`,
+			{
+				method: 'GET',
+				headers,
+			}
+		);
+
+		if (response.status > 299) {
+			throw Error(
+				`Request failed with status: ${response.status} & message: ${response.statusText}`
+			);
+		}
+		return response.json();
+	} catch (e) {
+		throw Error(`API call failed: ${e.message}`);
+	}
+}
+
+export function toAPIDateString(date: Date): string {
+	return [
+		date.getFullYear(),
+		`${date.getMonth() + 1}`.padStart(2, '0'),
+		`${date.getDate()}`.padStart(2, '0'),
+	].join('-');
+}
+
+export function fromAPI(apiTasks: Array<APITask>): IdToTask {
+	return apiTasks.reduce(function updateStoreAfterAPIResponse(
+		storeUpdate: IdToTask,
+		apiTask: APITask
+	) {
+		return {
+			...storeUpdate,
+			[apiTask.id]: {
+				id: apiTask.id,
+				name: apiTask.name,
+				startDate: new Date(apiTask.start_date),
+				endDate: new Date(apiTask.end_date),
+				status: apiTask.status as TaskStatus,
+				color: apiTask.color,
+				weight: apiTask.weight,
+			},
+		};
+	}, {} as IdToTask);
+}
+
+type DetailsForAPIRequest = {
+	token: string | null;
+	teamId: string | null;
+	workspaceId: string | null;
+};
+
+function getDetailsForAPIRequest(): DetailsForAPIRequest {
+	return {
+		token: localStorage.getItem('token'),
+		teamId: localStorage.getItem('teamId'),
+		workspaceId: localStorage.getItem('workspaceId'),
+	};
+}
 
 async function mockResponse() {
 	return Promise.resolve([
@@ -7,7 +128,247 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: null,
+			updated_at: '2024-02-17T23:18:07.459886',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588637,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Test 0',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-17T22:59:52.057370',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-03-01',
+			start_date: '2024-02-27',
+			status: 'to-do',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 3.0267989162467384,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-17T23:30:02.393165',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588636,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Test 5',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-17T22:59:47.656694',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-03-17',
+			start_date: '2024-03-10',
+			status: 'to-do',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 1.7896392354818051,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-17T23:18:08.892324',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588635,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Test mr2',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-17T19:35:19.721133',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-03-02',
+			start_date: '2024-03-02',
+			status: 'to-do',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 1.3433540144242115,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-17T23:23:06.669404',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588634,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Test m2',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-17T19:06:15.010301',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-03-07',
+			start_date: '2024-03-04',
+			status: 'in_progress',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 2.3709621173546065,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-17T22:29:52.514394',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588633,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Test Mr',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-17T18:53:55.476738',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-04-17',
+			start_date: '2024-04-02',
+			status: 'blocked',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 1.132983921209537,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-16T22:21:26.019433',
+			repetition_rule: null,
+			tag_ids: [],
+			visible_properties: ['estimate', 'notes'],
+			plan_id: null,
+			folder_id: null,
+			id: 20588632,
+			end_time: null,
+			task_type: 'user_created',
+			estimate_type: 'daily',
+			name: 'Alan',
+			original_repeated_task_id: null,
+			estimated_minutes: 0,
+			attachments: [],
+			workspace_members: [7160699],
+			created_at: '2024-02-16T22:20:58.768419',
+			parent_id: null,
+			total_checklist_items_count: 0,
+			end_date: '2024-04-25',
+			start_date: '2024-04-22',
+			status: 'to-do',
+			comments: [],
+			estimate_skips_weekend: true,
+			done: false,
+			done_checklist_items_count: 0,
+			timeline_segment_id: null,
+			color: 30,
+			tracked: false,
+			plan_status_position: null,
+			has_notes: false,
+			weight: 1.9592275526848846,
+			start_time: null,
+			updated_by: 7160699,
+			tracking: null,
+		},
+		{
+			daily_estimated_minutes: null,
+			created_by: 7160699,
+			is_last_repetition: false,
+			color_id: 30,
+			updated_at: '2024-02-18T00:12:56.001999',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -25,8 +386,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T22:01:05.514997',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-02-12',
-			start_date: '2024-02-09',
+			end_date: '2024-02-22',
+			start_date: '2024-02-19',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -37,7 +398,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 0.6119395546716062,
+			weight: 1.5474236411386775,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -87,7 +448,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T22:01:32.659889',
+			updated_at: '2024-02-17T14:43:05.034093',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -108,7 +469,7 @@ async function mockResponse() {
 			end_date: '2024-02-11',
 			start_date: '2024-02-11',
 			status: 'to-do',
-			comments: [],
+			comments: [7233],
 			estimate_skips_weekend: true,
 			done: false,
 			done_checklist_items_count: 0,
@@ -116,8 +477,8 @@ async function mockResponse() {
 			color: 30,
 			tracked: false,
 			plan_status_position: null,
-			has_notes: false,
-			weight: 0.005530213839718856,
+			has_notes: true,
+			weight: -0.3939718597749612,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -167,7 +528,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T22:01:31.025280',
+			updated_at: '2024-02-16T21:50:32.150102',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -185,8 +546,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T22:00:44.832279',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-02-14',
-			start_date: '2024-02-08',
+			end_date: '2024-02-13',
+			start_date: '2024-02-07',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -197,7 +558,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 2.3283882023484477,
+			weight: 0.504041167141665,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -207,7 +568,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T22:01:37.367560',
+			updated_at: '2024-02-17T23:23:02.582231',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -225,8 +586,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T22:00:38.076360',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-02-17',
-			start_date: '2024-02-10',
+			end_date: '2024-02-18',
+			start_date: '2024-02-11',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -237,7 +598,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.8994233063292052,
+			weight: 0.05503465368335192,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -247,7 +608,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: null,
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -265,8 +626,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T22:00:20.359481',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-01-14',
-			start_date: '2024-01-09',
+			end_date: '2024-02-08',
+			start_date: '2024-02-03',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -277,7 +638,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.386344472252096,
+			weight: 1.573155553260602,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -287,7 +648,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: null,
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -305,8 +666,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T22:00:12.164055',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-01-08',
-			start_date: '2024-01-04',
+			end_date: '2024-02-04',
+			start_date: '2024-01-31',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -317,7 +678,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.5078629797277436,
+			weight: 2.7761567599476704,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -327,7 +688,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T19:37:15.786145',
+			updated_at: '2024-02-18T00:12:58.663848',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -345,8 +706,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T19:37:04.625103',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-02-18',
-			start_date: '2024-02-18',
+			end_date: '2024-02-23',
+			start_date: '2024-02-23',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -357,7 +718,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.404334811825127,
+			weight: 1.6147082923910507,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -367,7 +728,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: null,
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -385,8 +746,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:31:56.413641',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2023-12-30',
-			start_date: '2023-12-27',
+			end_date: '2024-02-02',
+			start_date: '2024-01-30',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -397,7 +758,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.826655191569031,
+			weight: 1.8732711403040105,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -407,7 +768,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T18:31:39.067454',
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -425,8 +786,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:22:47.554537',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-01-10',
-			start_date: '2024-01-10',
+			end_date: '2024-02-01',
+			start_date: '2024-02-01',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -437,7 +798,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.4797043386970363,
+			weight: 3.623306217401086,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -447,7 +808,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T18:23:01.195697',
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -465,8 +826,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:22:43.883556',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2023-12-27',
-			start_date: '2023-12-27',
+			end_date: '2024-01-28',
+			start_date: '2024-01-28',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -477,7 +838,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 0.6168376158344084,
+			weight: 2.6346622065102823,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -487,7 +848,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T20:05:56.764356',
+			updated_at: '2024-02-18T07:59:45.875402',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -505,8 +866,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:22:37.602528',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2024-01-02',
-			start_date: '2023-12-30',
+			end_date: '2024-01-01',
+			start_date: '2023-12-29',
 			status: 'done',
 			comments: [7232],
 			estimate_skips_weekend: true,
@@ -517,7 +878,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: true,
-			weight: 1.3196559149521732,
+			weight: 0.9011274036760293,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -527,7 +888,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T18:22:50.851060',
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -545,8 +906,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:19:59.208584',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2023-12-27',
-			start_date: '2023-12-27',
+			end_date: '2024-01-28',
+			start_date: '2024-01-28',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -557,7 +918,7 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 1.024568193802425,
+			weight: 1.194449015030263,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
@@ -567,7 +928,7 @@ async function mockResponse() {
 			created_by: 7160699,
 			is_last_repetition: false,
 			color_id: 30,
-			updated_at: '2024-02-15T20:46:33.923588',
+			updated_at: '2024-02-18T08:01:46.106553',
 			repetition_rule: null,
 			tag_ids: [],
 			visible_properties: ['estimate', 'notes'],
@@ -585,8 +946,8 @@ async function mockResponse() {
 			created_at: '2024-02-15T18:19:18.314719',
 			parent_id: null,
 			total_checklist_items_count: 0,
-			end_date: '2023-12-29',
-			start_date: '2023-12-29',
+			end_date: '2024-01-30',
+			start_date: '2024-01-30',
 			status: 'to-do',
 			comments: [],
 			estimate_skips_weekend: true,
@@ -597,112 +958,10 @@ async function mockResponse() {
 			tracked: false,
 			plan_status_position: null,
 			has_notes: false,
-			weight: 0.9885583931638506,
+			weight: 1.1087767753390285,
 			start_time: null,
 			updated_by: 7160699,
 			tracking: null,
 		},
 	]);
 }
-
-export async function getTasks(
-	since: Date,
-	until: Date
-): Promise<Array<APITask>> {
-	const headers = new Headers();
-	const detailsForAPIRequest = getDetailsForAPIRequest();
-
-	// return mockResponse();
-	if (
-		!detailsForAPIRequest.teamId ||
-		!detailsForAPIRequest.token ||
-		!detailsForAPIRequest.workspaceId
-	) {
-		throw Error('Please set teamId, workspaceId & token in localStorage');
-	}
-
-	headers.append('Content-Type', 'application/json; charset=utf-8');
-	headers.append('authorization', detailsForAPIRequest.token);
-
-	try {
-		const response = await fetch(
-			`https://api.plan.toggl.space/api/v6-rc1/${detailsForAPIRequest.workspaceId}/tasks?since=${getFormattedDateString(since)}&until=${getFormattedDateString(until)}&short=true&team=${detailsForAPIRequest.teamId}`,
-			{
-				method: 'GET',
-				headers,
-			}
-		);
-
-		if (response.status > 299) {
-			throw Error(
-				`Request failed with status: ${response.status} & message: ${response.statusText}`
-			);
-		}
-		return response.json();
-	} catch (e) {
-		throw Error(`API call failed: ${e.message}`);
-	}
-}
-
-function getFormattedDateString(date: Date) {
-	return [
-		date.getFullYear(),
-		`${date.getMonth() + 1}`.padStart(2, '0'),
-		`${date.getDate()}`.padStart(2, '0'),
-	].join('-');
-}
-
-function getDetailsForAPIRequest(): DetailsForAPIRequest {
-	return {
-		token: localStorage.getItem('token'),
-		teamId: localStorage.getItem('teamId'),
-		workspaceId: localStorage.getItem('workspaceId'),
-	};
-}
-
-type DetailsForAPIRequest = {
-	token: string | null;
-	teamId: string | null;
-	workspaceId: string | null;
-};
-
-export type APITask = {
-	// daily_estimated_minutes: null;
-	// created_by: 7160699;
-	// is_last_repetition: false;
-	// color_id: 30;
-	// updated_at: '2024-02-15T18:22:53.336949';
-	// repetition_rule: null;
-	// tag_ids: [];
-	// visible_properties: ['estimate', 'notes'];
-	// plan_id: null;
-	// folder_id: null;
-	id: number;
-	// end_time: null;
-	// task_type: 'user_created';
-	// estimate_type: 'daily';
-	name: string;
-	// original_repeated_task_id: null;
-	// estimated_minutes: 0;
-	// attachments: [];
-	// workspace_members: [7160699];
-	// created_at: '2024-02-15T18:19:18.314719';
-	// parent_id: null;
-	// total_checklist_items_count: 0;
-	end_date: string;
-	start_date: string;
-	status: TaskStatus;
-	// comments: [];
-	// estimate_skips_weekend: true;
-	done: boolean;
-	// done_checklist_items_count: 0;
-	// timeline_segment_id: null;
-	color: number;
-	// tracked: false;
-	// plan_status_position: null;
-	// has_notes: boolean;
-	// weight: number;
-	// start_time: null;
-	// updated_by: 7160699;
-	// tracking: null;
-};

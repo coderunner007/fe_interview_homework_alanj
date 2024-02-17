@@ -1,6 +1,8 @@
+import { toAPIDateString } from './api';
 import type { DateRange } from './stores';
 
-export const daysOfTheWeek: Array<string> = [
+// TODO: Add tests for copyDate, dateDifference
+export const DAYS_OF_THE_WEEK: Array<string> = [
 	'Sunday',
 	'Monday',
 	'Tuesday',
@@ -10,7 +12,7 @@ export const daysOfTheWeek: Array<string> = [
 	'Saturday',
 ];
 
-export const monthsOfTheYear: Array<string> = [
+export const MONTHS_OF_THE_YEAR: Array<string> = [
 	'January',
 	'February',
 	'March',
@@ -25,12 +27,24 @@ export const monthsOfTheYear: Array<string> = [
 	'December',
 ];
 
+export function getDateAfterMove(
+	fromDate: Date,
+	movedBy: number,
+	dateCellWidthOnGrid: number
+): Date {
+	return getDateAfter(fromDate, Math.round(movedBy / dateCellWidthOnGrid));
+}
+
 export function getDateRangeForInitialAPIRequest(
 	lengthOfDateRange: number,
 	totalGridWidth?: number,
 	dateCellWidthOnGrid?: number
 ) {
-	const today = new Date();
+	// Convert today's date to API format date string
+	// & convert it back so that the same time is set
+	// for all dates. This will ensure that further
+	// operations (like date difference) work correctly.
+	const today = new Date(toAPIDateString(new Date()));
 	const lengthOfDateRangeAdjustedForGridWidth =
 		getLengthOfDateRangeAdjustedForGridWidth(
 			lengthOfDateRange,
@@ -85,30 +99,55 @@ export function getDateRangeForAPIRequest(
 	}
 }
 
-export function mergeDateRanges(
-	dateRange1?: DateRange,
-	dateRange2?: DateRange
+export function getMergedDateRange(
+	dateRange1: DateRange,
+	dateRange2?: DateRange,
+	mergeAdjacentRanges?: boolean
 ): DateRange | undefined {
-	if (!dateRange1 || !dateRange1.since || !dateRange1.until) {
-		return dateRange2;
-	} else if (!dateRange2 || !dateRange2.since || !dateRange2.until) {
+	if (!dateRange2) {
 		return dateRange1;
-	} else if (
-		Math.abs(dateDifference(dateRange1.since, dateRange2.until)) <= 1
+	}
+	if (
+		dateDifference(dateRange1.since, dateRange1.until) < 0 ||
+		dateDifference(dateRange2.since, dateRange2.until) < 0
+	) {
+		throw Error('Invalid date range');
+	}
+
+	const earliestSince =
+		dateDifference(dateRange1.since, dateRange2.since) > 0
+			? dateRange1.since
+			: dateRange2.since;
+	const latestUntil =
+		dateDifference(dateRange1.until, dateRange2.until) > 0
+			? dateRange2.until
+			: dateRange1.until;
+	const sinceDifference = Math.abs(
+		dateDifference(dateRange1.since, dateRange2.since)
+	);
+	const untilDifference = Math.abs(
+		dateDifference(dateRange1.until, dateRange2.until)
+	);
+	const totalDateRangeLength = dateDifference(earliestSince, latestUntil);
+
+	if (
+		totalDateRangeLength - (sinceDifference + untilDifference) >=
+		(mergeAdjacentRanges ? -1 : 0)
 	) {
 		return {
-			since: dateRange2.since,
-			until: dateRange1.until,
-		};
-	} else if (
-		Math.abs(dateDifference(dateRange1.until, dateRange2.since)) <= 1
-	) {
-		return {
-			since: dateRange1.since,
-			until: dateRange2.until,
+			since: copyDate(earliestSince),
+			until: copyDate(latestUntil),
 		};
 	} else {
-		throw Error('Date ranges cannot be merged');
+		return;
+	}
+}
+
+export function getLengthOfDateRange(dateRange: DateRange): number {
+	if (isInvalidDateRange(dateRange)) {
+		throw Error('Invalid date range');
+	} else {
+		return dateDifference(dateRange.since, dateRange.until);
 	}
 }
 
@@ -181,33 +220,3 @@ function areDatesEqual(date1: Date, date2: Date): boolean {
 function isInvalidDateRange(dateRange: DateRange): boolean {
 	return dateDifference(dateRange.since, dateRange.until) < 0;
 }
-// export function mergeDatesIntoSingleContiguousRange(
-// 	dates1: Array<Date>,
-// 	dates2: Array<Date>
-// ): Array<Date> {
-// 	if (!dates1.length) {
-// 		return [...dates2];
-// 	} else if (!dates2.length) {
-// 		return [...dates1];
-// 	} else if (areDatesEqual(dates1[0], dates2[dates2.length - 1])) {
-// 		// Attach dates1 to end of dates2 & also remove duplicate date
-// 		return [...dates2, ...dates1.toSpliced(1, 1)];
-// 	} else if (areDatesEqual(dates1[dates1.length - 1], dates2[0])) {
-// 		// Attach dates2 to end of dates1 & also remove duplicate date
-// 		return [...dates1, ...dates2.toSpliced(1, 1)];
-// 	} else if (
-// 		Math.abs(dateDifference(dates1[dates1.length - 1], dates2[0])) == 1
-// 	) {
-// 		// Attach dates2 to end of dates1 without removing duplicate date
-// 		return [...dates1, ...dates2];
-// 	} else if (
-// 		Math.abs(dateDifference(dates2[dates1.length - 1], dates1[0])) == 1
-// 	) {
-// 		// Attach dates1 to end of dates2 without removing duplicate date
-// 		return [...dates2, ...dates1];
-// 	} else {
-// 		// Date ranges have a difference of more than 1 date which should
-// 		// not happen ideally.
-// 		throw Error('Date ranges cannot be merged');
-// 	}
-// }
