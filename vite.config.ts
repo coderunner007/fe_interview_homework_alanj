@@ -1,7 +1,13 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	plugins: [svelte()],
-});
+	resolve: {
+		conditions: mode === 'test' ? ['browser'] : [],
+	},
+	test: {
+		environment: 'jsdom',
+		setupFiles: ['./vitest-setup.ts'],
+	},
+}));
