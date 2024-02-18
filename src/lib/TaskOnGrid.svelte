@@ -10,8 +10,8 @@
 	export let getTaskLeftPosition: (task: Task) => number;
 	export let getTaskTopPosition: (task: Task) => number;
 	export let getTaskWidth: (task: Task) => number;
+	export let taskHeight: number;
 
-	const taskHeight = 42;
 	let startPositionX: number | undefined;
 	let movedByX: number | undefined;
 
@@ -49,8 +49,9 @@
 
 {#if movedByX}
 	<div
-		class="absolute h-5 rounded-sm bg-indigo-400 opacity-20"
+		class="pointer-events-none absolute h-5 rounded-sm bg-indigo-400 opacity-20"
 		style:width="{getTaskWidth(task)}px"
+		style:height="{taskHeight}px"
 		style:top="{getTaskTopPosition({
 			...task,
 			startDate: getDateAfterMove(
@@ -85,13 +86,13 @@
 	on:drag={onDrag}
 	on:dragstart={onDragStart}
 	on:dragend={onDragEnd}
-	class="absolute overflow-hidden rounded-sm bg-indigo-400 p-1"
+	class="absolute overflow-hidden rounded-md bg-indigo-400 p-1 text-white"
 	style:top="{getTaskTopPosition(task)}px"
 	style:left="{getTaskLeftPosition(task)}px"
 	style:height="{taskHeight}px"
 	style:width="{getTaskWidth(task)}px">
 	<span class="whitespace-nowrap">
-		{#if task.status != TaskStatus.NO_STATUS}
+		{#if task.status == TaskStatus.BLOCKED || task.status == TaskStatus.IN_PROGRESS}
 			{TASK_STATUS_TO_STATUS_EMOJI[task.status]}
 		{/if}
 		{task.name}

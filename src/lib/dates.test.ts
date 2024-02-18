@@ -7,7 +7,16 @@ import {
 	getDateRangeForAPIRequest,
 	getDateRangeForInitialAPIRequest,
 	getMergedDateRange,
+	getNonInterlappingDateRanges,
 } from './dates';
+import {
+	expectedMultipleContiguousDateRanges,
+	expectedNoOverlappingRanges,
+	expectedNonOverlappingRanges,
+	multipleContiguousDateRanges,
+	noOverlappingRanges,
+	oneContiguousRange,
+} from './mocks';
 import type { DateRange } from './stores';
 
 describe('generateDatesForDateRange', () => {
@@ -501,5 +510,44 @@ describe('getMergedDateRange', () => {
 		expect(actual).toBeDefined();
 		expect(actual?.since.toDateString()).toEqual(expected.since.toDateString());
 		expect(actual?.until.toDateString()).toEqual(expected.until.toDateString());
+	});
+});
+
+describe('getNonInterlappingDateRanges', () => {
+	it('returns a single overlapping date range if all tasks form one contiguous interval', () => {
+		const actual = getNonInterlappingDateRanges(oneContiguousRange);
+		expect(actual).toHaveLength(1);
+		expect(actual[0].since.toDateString()).toEqual(
+			expectedNonOverlappingRanges[0].since.toDateString()
+		);
+		expect(actual[0].until.toDateString()).toEqual(
+			expectedNonOverlappingRanges[0].until.toDateString()
+		);
+	});
+
+	it('returns  more than 1 date range if tasks form more than one separate contiguous intervals', () => {
+		const actual = getNonInterlappingDateRanges(multipleContiguousDateRanges);
+		expect(actual).toHaveLength(expectedMultipleContiguousDateRanges.length);
+		expectedMultipleContiguousDateRanges.forEach((dateRange, idx) => {
+			expect(dateRange.since.toDateString()).toEqual(
+				actual[idx].since.toDateString()
+			);
+			expect(dateRange.until.toDateString()).toEqual(
+				actual[idx].until.toDateString()
+			);
+		});
+	});
+
+	it('returns date range equal to number of tasks if no tasks have overlapping date ranges', () => {
+		const actual = getNonInterlappingDateRanges(noOverlappingRanges);
+		expect(actual).toHaveLength(noOverlappingRanges.length);
+		expectedNoOverlappingRanges.forEach((dateRange, idx) => {
+			expect(dateRange.since.toDateString()).toEqual(
+				actual[idx].since.toDateString()
+			);
+			expect(dateRange.until.toDateString()).toEqual(
+				actual[idx].until.toDateString()
+			);
+		});
 	});
 });

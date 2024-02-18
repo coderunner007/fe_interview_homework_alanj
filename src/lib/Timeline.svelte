@@ -42,7 +42,7 @@
 	);
 	setContext(CONFIG_CONTEXT_KEY, displayConfig);
 
-	let dateRangeLengthForAPI = 14;
+	let dateRangeLengthForAPI = 100;
 	$: $displayConfigWriteable.displayedDates = $tasksStore?.dateRange;
 	$: $displayConfigWriteable.gridWidth =
 		// Add 1 because both since & until dates
@@ -116,14 +116,6 @@
 
 				return value;
 			});
-			console.log(
-				'onDrop',
-				getDateAfterMove(
-					parsedTransferredObject.task.startDate,
-					movedBy,
-					$displayConfig.dateCellWidthOnGrid
-				)
-			);
 		}
 	}
 </script>
