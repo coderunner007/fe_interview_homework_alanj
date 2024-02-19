@@ -105,6 +105,7 @@
 	}
 
 	function onDragEnd() {
+		console.log('on drage end');
 		movedByX = 0;
 	}
 </script>
@@ -114,21 +115,10 @@
 		class="pointer-events-none absolute h-5 rounded-sm bg-indigo-400 opacity-20"
 		style:width="{getTaskWidth(task)}px"
 		style:height="{$timelineDisplayConfig.taskHeight}px"
-		style:top="{getTaskTopPosition({
-			...task,
-			startDate: getDateAfterMove(
-				task.startDate,
-				movedByX,
-				$timelineDisplayConfig.dateCellWidthOnGrid
-			),
-			endDate: getDateAfterMove(
-				task.endDate,
-				movedByX,
-				$timelineDisplayConfig.dateCellWidthOnGrid
-			),
-		})}px"
+		style:top="{getTaskTopPosition(task)}px"
 		style:left="{getTaskLeftPosition({
 			...task,
+			id: -1,
 			startDate: getDateAfterMove(
 				task.startDate,
 				movedByX,

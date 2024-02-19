@@ -52,15 +52,9 @@
 			$timelineDisplayConfig.dateCellWidthOnGrid;
 		if ($tasksStore?.tasks) {
 			console.log('task store updated');
-			if (!$timelineDisplayConfig.tasksSorter) {
-				$timelineDisplayConfig.tasksSorter = new TaskSorter(
-					Object.values($tasksStore.tasks)
-				);
-			} else {
-				$timelineDisplayConfig.tasksSorter?.refreshTaskStore(
-					Object.values($tasksStore.tasks)
-				);
-			}
+			$timelineDisplayConfig.tasksSorter = new TaskSorter(
+				Object.values($tasksStore.tasks)
+			);
 		}
 	}
 
@@ -125,6 +119,8 @@
 			} catch (e) {
 				console.log('Error doing parsing on drop', e);
 			}
+
+			console.log('on drop');
 		}
 	}
 </script>
