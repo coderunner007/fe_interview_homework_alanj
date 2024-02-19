@@ -1,3 +1,7 @@
+<script lang="ts">
+	export let width: number;
+</script>
+
 <style lang="postcss">
 	.logo {
 		color: #8b55dd;
@@ -16,6 +20,7 @@
 
 <nav
 	id="sidebar"
+	style:width="{width}px"
 	class="fixed left-0 flex h-screen w-14 flex-col items-center bg-purple-950">
 	<a
 		aria-label="Go to Toggl Plan Home"

@@ -27,14 +27,14 @@ export type DateRange = {
 	until: Date;
 };
 
-export type TasksFromAPI = {
+export type AllTasks = {
 	tasks: IdToTask;
 	dateRange: DateRange;
 };
 
-const tasksFromAPIStore: Writable<TasksFromAPI | undefined> = writable();
+const tasksFromAPIStore: Writable<AllTasks | undefined> = writable();
 export const uncommitedTasks: Writable<IdToTask> = writable({});
-export const tasksStore: Readable<TasksFromAPI | undefined> = derived(
+export const tasksStore: Readable<AllTasks | undefined> = derived(
 	[tasksFromAPIStore, uncommitedTasks],
 	([$tasksFromAPIStore, $uncommitedTasks], set) => {
 		if ($tasksFromAPIStore) {
@@ -54,7 +54,7 @@ export async function populateTasks(dateRange: DateRange) {
 		const tasksResponse = await getTasks(dateRange.since, dateRange.until);
 
 		tasksFromAPIStore.update(function populateStoreAfterResponse(
-			currentTasksFromAPI: TasksFromAPI | undefined
+			currentTasksFromAPI: AllTasks | undefined
 		) {
 			const updatedDateRange = getMergedDateRange(
 				dateRange,

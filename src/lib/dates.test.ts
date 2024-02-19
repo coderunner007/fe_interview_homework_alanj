@@ -9,6 +9,7 @@ import {
 	getMergedDateRange,
 	getNonInterlappingDateRanges,
 } from './dates';
+import type { DateRange } from './stores';
 import {
 	expectedMultipleContiguousDateRanges,
 	expectedNoOverlappingRanges,
@@ -16,55 +17,7 @@ import {
 	multipleContiguousDateRanges,
 	noOverlappingRanges,
 	oneContiguousRange,
-} from './mocks';
-import type { DateRange } from './stores';
-
-describe('generateDatesForDateRange', () => {
-	it('returns list of dates with length equal to (difference in range + 1) if range is valid', () => {
-		const validDateRange = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 3, 7),
-		};
-
-		const generatedDates = generateDatesForDateRange(validDateRange);
-
-		expect(generatedDates.length).toEqual(
-			// Since both start & end are inclusive, add 1 extra
-			Math.abs(dateDifference(validDateRange.since, validDateRange.until) + 1)
-		);
-	});
-
-	it('returns list of dates from start date to end date (both inclusive) if the date range is valid', () => {
-		const validDateRange = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 3, 7),
-		};
-
-		const generatedDates = generateDatesForDateRange(validDateRange);
-
-		// Verify each date in range is present in list
-		const currentDate = copyDate(validDateRange.since);
-		generatedDates.forEach((date) => {
-			expect(date.toDateString()).toEqual(currentDate.toDateString());
-			currentDate.setDate(currentDate.getDate() + 1);
-		});
-		expect(generatedDates[generatedDates.length - 1].toDateString()).toEqual(
-			validDateRange.until.toDateString()
-		);
-	});
-
-	it('throws error if the date range is invalid', () => {
-		// Invalid: Until is before since
-		const invalidDateRange = {
-			since: new Date(2023, 2, 29),
-			until: new Date(2023, 1, 7),
-		};
-
-		expect(() => generateDatesForDateRange(invalidDateRange)).toThrowError(
-			'Invalid date range'
-		);
-	});
-});
+} from './testData';
 
 describe('getDateRangeForInitialAPIRequest', () => {
 	it('returns date range with length based on grid size if given length < length calculated by grid parameters', () => {
@@ -549,5 +502,52 @@ describe('getNonInterlappingDateRanges', () => {
 				actual[idx].until.toDateString()
 			);
 		});
+	});
+});
+
+describe('generateDatesForDateRange', () => {
+	it('returns list of dates with length equal to (difference in range + 1) if range is valid', () => {
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 3, 7),
+		};
+
+		const generatedDates = generateDatesForDateRange(validDateRange);
+
+		expect(generatedDates.length).toEqual(
+			// Since both start & end are inclusive, add 1 extra
+			Math.abs(dateDifference(validDateRange.since, validDateRange.until) + 1)
+		);
+	});
+
+	it('returns list of dates from start date to end date (both inclusive) if the date range is valid', () => {
+		const validDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 3, 7),
+		};
+
+		const generatedDates = generateDatesForDateRange(validDateRange);
+
+		// Verify each date in range is present in list
+		const currentDate = copyDate(validDateRange.since);
+		generatedDates.forEach((date) => {
+			expect(date.toDateString()).toEqual(currentDate.toDateString());
+			currentDate.setDate(currentDate.getDate() + 1);
+		});
+		expect(generatedDates[generatedDates.length - 1].toDateString()).toEqual(
+			validDateRange.until.toDateString()
+		);
+	});
+
+	it('throws error if the date range is invalid', () => {
+		// Invalid: Until is before since
+		const invalidDateRange = {
+			since: new Date(2023, 2, 29),
+			until: new Date(2023, 1, 7),
+		};
+
+		expect(() => generateDatesForDateRange(invalidDateRange)).toThrowError(
+			'Invalid date range'
+		);
 	});
 });

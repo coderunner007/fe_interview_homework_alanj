@@ -1,7 +1,6 @@
 import { toAPIDateString } from './api';
 import type { DateRange, Task } from './stores';
 
-// TODO: Add tests for copyDate, dateDifference
 export const DAYS_OF_THE_WEEK: Array<string> = [
 	'Sunday',
 	'Monday',
@@ -26,86 +25,6 @@ export const MONTHS_OF_THE_YEAR: Array<string> = [
 	'November',
 	'December',
 ];
-
-export function getDateAfterMove(
-	fromDate: Date,
-	movedBy: number,
-	dateCellWidthOnGrid: number
-): Date {
-	return getDateAfter(fromDate, Math.round(movedBy / dateCellWidthOnGrid));
-}
-
-export function taskDateRangeComparator(task1: Task, task2: Task) {
-	const startDateDifference = dateDifference(task2.startDate, task1.startDate);
-
-	// If start dates are the same return the largest task first
-	return startDateDifference
-		? startDateDifference
-		: dateDifference(task2.endDate, task1.endDate);
-}
-
-// This will always return sorted list from earliest range to latest range
-export function getNonInterlappingDateRanges(tasks: Array<Task>) {
-	const sortedTasks = tasks.toSorted(taskDateRangeComparator);
-
-	const dateRanges: Array<DateRange> = [];
-	sortedTasks.forEach((task) => {
-		const taskDateRange = {
-			since: task.startDate,
-			until: task.endDate,
-		};
-		if (!dateRanges.length) {
-			dateRanges.push(taskDateRange);
-			return;
-		}
-
-		const mergedDateRange = getMergedDateRange(
-			dateRanges[dateRanges.length - 1],
-			taskDateRange
-		);
-		if (mergedDateRange && dateRanges.length > 1) {
-			// Check if the updated mergedDate range is intersecting with previous
-			// date range
-			const previousMergedDateRange = getMergedDateRange(
-				dateRanges[dateRanges.length - 2],
-				mergedDateRange
-			);
-
-			if (previousMergedDateRange) {
-				// If yes, then pop previous date range and current date range
-				// & replace with new large date range
-				dateRanges.pop();
-				dateRanges.pop();
-				dateRanges.push(previousMergedDateRange);
-			}
-		}
-
-		if (mergedDateRange) {
-			// the merged date range will definitely be larger,
-			// hence remove the previous date range & push the new one
-			dateRanges.pop();
-			dateRanges.push(mergedDateRange);
-		} else {
-			// The date ranges don't overlap, hence push the tasks date range
-			dateRanges.push({
-				since: task.startDate,
-				until: task.endDate,
-			});
-		}
-	});
-
-	return dateRanges;
-}
-
-export function isTaskInDateRange(task: Task, dateRange: DateRange) {
-	return !!getMergedDateRange(
-		{
-			since: task.startDate,
-			until: task.endDate,
-		},
-		dateRange
-	);
-}
 
 export function getDateRangeForInitialAPIRequest(
 	lengthOfDateRange: number,
@@ -215,12 +134,57 @@ export function getMergedDateRange(
 	}
 }
 
-export function getLengthOfDateRange(dateRange: DateRange): number {
-	if (isInvalidDateRange(dateRange)) {
-		throw Error('Invalid date range');
-	} else {
-		return dateDifference(dateRange.since, dateRange.until);
-	}
+// This will always return sorted list from earliest range to latest range
+export function getNonInterlappingDateRanges(tasks: Array<Task>) {
+	const sortedTasks = tasks.toSorted(taskDateRangeComparator);
+
+	const dateRanges: Array<DateRange> = [];
+	sortedTasks.forEach((task) => {
+		const taskDateRange = {
+			since: task.startDate,
+			until: task.endDate,
+		};
+		if (!dateRanges.length) {
+			dateRanges.push(taskDateRange);
+			return;
+		}
+
+		const mergedDateRange = getMergedDateRange(
+			dateRanges[dateRanges.length - 1],
+			taskDateRange
+		);
+		if (mergedDateRange && dateRanges.length > 1) {
+			// Check if the updated mergedDate range is intersecting with previous
+			// date range
+			const previousMergedDateRange = getMergedDateRange(
+				dateRanges[dateRanges.length - 2],
+				mergedDateRange
+			);
+
+			if (previousMergedDateRange) {
+				// If yes, then pop previous date range and current date range
+				// & replace with new large date range
+				dateRanges.pop();
+				dateRanges.pop();
+				dateRanges.push(previousMergedDateRange);
+			}
+		}
+
+		if (mergedDateRange) {
+			// the merged date range will definitely be larger,
+			// hence remove the previous date range & push the new one
+			dateRanges.pop();
+			dateRanges.push(mergedDateRange);
+		} else {
+			// The date ranges don't overlap, hence push the tasks date range
+			dateRanges.push({
+				since: task.startDate,
+				until: task.endDate,
+			});
+		}
+	});
+
+	return dateRanges;
 }
 
 export function generateDatesForDateRange(dateRange: DateRange): Array<Date> {
@@ -237,6 +201,41 @@ export function generateDatesForDateRange(dateRange: DateRange): Array<Date> {
 	generatedDates.push(copyDate(dateRange.until));
 
 	return generatedDates;
+}
+
+export function getLengthOfDateRange(dateRange: DateRange): number {
+	if (isInvalidDateRange(dateRange)) {
+		throw Error('Invalid date range');
+	} else {
+		return dateDifference(dateRange.since, dateRange.until);
+	}
+}
+
+export function isTaskInDateRange(task: Task, dateRange: DateRange) {
+	return !!getMergedDateRange(
+		{
+			since: task.startDate,
+			until: task.endDate,
+		},
+		dateRange
+	);
+}
+
+export function getDateAfterMove(
+	fromDate: Date,
+	movedBy: number,
+	dateCellWidthOnGrid: number
+): Date {
+	return getDateAfter(fromDate, Math.round(movedBy / dateCellWidthOnGrid));
+}
+
+export function taskDateRangeComparator(task1: Task, task2: Task) {
+	const startDateDifference = dateDifference(task2.startDate, task1.startDate);
+
+	// If start dates are the same return the largest task first
+	return startDateDifference
+		? startDateDifference
+		: dateDifference(task2.endDate, task1.endDate);
 }
 
 export function dateDifference(date1: Date, date2: Date) {

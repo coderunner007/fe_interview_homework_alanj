@@ -68,12 +68,17 @@ export async function getTasks(
 			}
 		);
 
-		if (response.status > 299) {
+		if (response.status == 401) {
 			throw Error(
-				`Request failed with status: ${response.status} & message: ${response.statusText}`
+				'Unauthorized! Please reset authorization token in localStorage'
 			);
+		} else if (response.status > 299) {
+			throw Error(
+				`Request failed with status: ${response.status}${response.statusText ? ` & message: ${response.statusText}` : ''}`
+			);
+		} else {
+			return response.json();
 		}
-		return response.json();
 	} catch (e) {
 		throw Error(`API call failed: ${(e as Error).message}`);
 	}
