@@ -113,7 +113,8 @@
 		</div>
 		<div class="relative">
 			<TimelineGrid />
-			<Swimlanes tasks={$tasksStore?.tasks || {}} />
+			<Swimlanes
+				tasks={$tasksStore?.tasks ? Object.values($tasksStore.tasks) : []} />
 		</div>
 	</section>
 {/if}

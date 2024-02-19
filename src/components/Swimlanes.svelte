@@ -25,10 +25,14 @@
 	import { getContext, setContext } from 'svelte';
 	import { TaskSorter } from '../lib/taskSorter';
 
-	export let tasks: IdToTask;
-
-	let tasksList: Array<Task>;
-	$: tasksList = Object.values(tasks);
+	export let tasks: Array<Task>;
+	$: {
+		console.log('in taskSorterUpdater');
+		swimlaneDisplayConfig.update((value) => ({
+			...value,
+			tasksSorter: new TaskSorter(tasks),
+		}));
+	}
 
 	let timelineDisplayConfig: Readable<TimelineDisplayConfig> = getContext(
 		TIMELINE_DISPLAY_CONFIG
@@ -38,16 +42,9 @@
 		taskHeight: 42,
 		swimlaneOffsetFromTop: 20,
 		swimlaneMarginTop: 20,
-		tasksSorter: new TaskSorter(Object.values(tasks)),
+		tasksSorter: new TaskSorter(tasks),
 	});
 	setContext(SWIMLANE_DISPLAY_CONFIG, readonly(swimlaneDisplayConfig));
-	$: {
-		console.log('in taskSorterUpdater');
-		swimlaneDisplayConfig.update((value) => ({
-			...value,
-			tasksSorter: new TaskSorter(Object.values(tasks)),
-		}));
-	}
 
 	let highestSortedPositionOfTasks = 1;
 
@@ -69,7 +66,7 @@
 			$swimlaneDisplayConfig.swimlaneMarginTop * 2}px"
 		class="pointer-events-none absolute right-0 min-h-10 w-full border-slate-400 bg-gray-200 opacity-40">
 	</div>
-	{#each tasksList as task (task.id)}
+	{#each tasks as task (task.id)}
 		<TaskOnGrid {task} updateSwimlaneHeight={onSortPositionUpdate} />
 	{/each}
 </div>
