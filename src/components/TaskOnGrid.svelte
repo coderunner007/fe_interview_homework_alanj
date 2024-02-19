@@ -46,7 +46,7 @@
 
 	function getTaskTopPosition(task: Task) {
 		const sortedPosition =
-			$swimlaneDisplayConfig.tasksSorter.getSortPosition(task.id) || 0;
+			$swimlaneDisplayConfig.tasksSorter.getSortPosition(task) || 0;
 
 		updateSwimlaneHeight(sortedPosition);
 
