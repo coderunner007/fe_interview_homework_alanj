@@ -7,7 +7,7 @@
 - Next & Previous navigation buttons which fetches previous / next month's tasks & displays them on timeline view.
 - Swimlane whose height is updated based on the lowest & highest horizontally stacked task.
 - Tasks are stacked horizontally based on weight of task w.r.t other tasks in the same date range. Higher the weight, lower the task position.
-- Drag & drop functionality which positions the task correctly in the updated time range (but not correctly positioned vertically).
+- Drag & drop functionality which positions the task correctly in the updated time range (vertical position will not be updated by task weight but tasks will not overlap).
 - Handle common API errors like API details not set or Authentication failed.
 
 ## The Mission

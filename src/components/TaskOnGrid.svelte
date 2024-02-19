@@ -120,19 +120,7 @@
 		class="pointer-events-none absolute h-5 rounded-sm bg-indigo-400 opacity-20"
 		style:width="{getTaskWidth(task)}px"
 		style:height="{$swimlaneDisplayConfig.taskHeight}px"
-		style:top="{getTaskTopPosition({
-			...task,
-			startDate: getDateAfterMove(
-				task.startDate,
-				movedByX,
-				$timelineDisplayConfig.dateCellWidthOnGrid
-			),
-			endDate: getDateAfterMove(
-				task.endDate,
-				movedByX,
-				$timelineDisplayConfig.dateCellWidthOnGrid
-			),
-		})}px"
+		style:top="{getTaskTopPosition(task)}px"
 		style:left="{getTaskLeftPosition({
 			...task,
 			startDate: getDateAfterMove(
