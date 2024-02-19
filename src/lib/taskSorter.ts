@@ -2,23 +2,23 @@ import { getMergedDateRange, taskDateRangeComparator } from './dates';
 import type { DateRange, Task } from './stores';
 
 export class TaskSorter {
-	sortedTasksByDate: Array<Task>;
-	cachedPositionOfTask: Map<number, number>;
+	#sortedTasksByDate: Array<Task>;
+	#cachedPositionOfTask: Map<number, number>;
 
 	constructor(tasks: Array<Task>) {
-		this.sortedTasksByDate = tasks.toSorted(taskDateRangeComparator);
-		this.cachedPositionOfTask = new Map();
+		this.#sortedTasksByDate = tasks.toSorted(taskDateRangeComparator);
+		this.#cachedPositionOfTask = new Map();
 	}
 
-	getSortPosition(task: Task, spaces = 2): number {
-		if (this.cachedPositionOfTask.has(task.id)) {
+	getSortPosition(task: Task): number {
+		if (this.#cachedPositionOfTask.has(task.id)) {
 			console.log('cache hit');
-			return this.cachedPositionOfTask.get(task.id) as number;
+			return this.#cachedPositionOfTask.get(task.id) as number;
 		}
 
 		const directlyOverlappingTasksSortedByWeight =
-			this.getDirectlyOverlappingTasks(task, this.sortedTasksByDate).toSorted(
-				this.taskWeightComparator
+			this.#getDirectlyOverlappingTasks(task, this.#sortedTasksByDate).toSorted(
+				this.#taskWeightComparator
 			);
 
 		// The sort position we get here is not complete
@@ -42,61 +42,50 @@ export class TaskSorter {
 							.map((t) => this.getSortPosition(t))
 					) + 1
 				: 0;
-		// console.log(
-		// 	task.weight,
-		// 	task.name,
-		// 	' '.padStart(spaces + 1),
-		// 	directlyOverlappingTasksSortedByWeight.map((t) => t.name),
-		// 	totalSort,
-		// 	partialSortPositionOfTask
-		// );
 		// memoize calculated sort position
-		this.cachedPositionOfTask.set(task.id, totalSort);
+		this.#cachedPositionOfTask.set(task.id, totalSort);
 
 		return totalSort;
 	}
 
-	getDirectlyOverlappingTasks(task: Task, sortedTasksByDate: Array<Task>) {
-		const idx = sortedTasksByDate.findIndex((t) => t.id == task.id);
-		if (idx == -1) {
-			return [];
-		}
-
-		const directlyOverlappingTasks = [task];
-		for (let i = idx + 1; i < sortedTasksByDate.length; i++) {
+	#getDirectlyOverlappingTasks(task: Task, sortedTasksByDate: Array<Task>) {
+		const directlyOverlappingTasks = [];
+		// eslint-disable-next-line no-var
+		for (var i = 0; sortedTasksByDate[i].id != task.id; i++) {
 			if (
 				getMergedDateRange(
-					this.getDateRangeOfTask(task),
-					this.getDateRangeOfTask(sortedTasksByDate[i])
+					this.#getDateRangeOfTask(task),
+					this.#getDateRangeOfTask(sortedTasksByDate[i])
 				)
 			) {
 				directlyOverlappingTasks.push(sortedTasksByDate[i]);
-			} else {
-				break;
 			}
 		}
-		for (let i = idx - 1; i >= 0; i--) {
+		directlyOverlappingTasks.push(task);
+		for (let j = i + 1; j < sortedTasksByDate.length; j++) {
 			if (
 				getMergedDateRange(
-					this.getDateRangeOfTask(task),
-					this.getDateRangeOfTask(sortedTasksByDate[i])
+					this.#getDateRangeOfTask(task),
+					this.#getDateRangeOfTask(sortedTasksByDate[j])
 				)
 			) {
-				directlyOverlappingTasks.push(sortedTasksByDate[i]);
+				directlyOverlappingTasks.push(sortedTasksByDate[j]);
+			} else {
+				break;
 			}
 		}
 
 		return directlyOverlappingTasks;
 	}
 
-	getDateRangeOfTask(task: Task): DateRange {
+	#getDateRangeOfTask(task: Task): DateRange {
 		return {
 			since: task.startDate,
 			until: task.endDate,
 		};
 	}
 
-	taskWeightComparator(task1: Task, task2: Task) {
+	#taskWeightComparator(task1: Task, task2: Task) {
 		return task1.weight - task2.weight;
 	}
 }
