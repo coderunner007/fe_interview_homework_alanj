@@ -12,6 +12,7 @@ export class TaskSorter {
 
 	getSortPosition(task: Task, spaces = 2): number {
 		if (this.cachedPositionOfTask.has(task.id)) {
+			console.log('cache hit');
 			return this.cachedPositionOfTask.get(task.id) as number;
 		}
 
@@ -41,14 +42,14 @@ export class TaskSorter {
 							.map((t) => this.getSortPosition(t))
 					) + 1
 				: 0;
-		console.log(
-			task.weight,
-			task.name,
-			' '.padStart(spaces + 1),
-			directlyOverlappingTasksSortedByWeight.map((t) => t.name),
-			totalSort,
-			partialSortPositionOfTask
-		);
+		// console.log(
+		// 	task.weight,
+		// 	task.name,
+		// 	' '.padStart(spaces + 1),
+		// 	directlyOverlappingTasksSortedByWeight.map((t) => t.name),
+		// 	totalSort,
+		// 	partialSortPositionOfTask
+		// );
 		// memoize calculated sort position
 		this.cachedPositionOfTask.set(task.id, totalSort);
 
@@ -82,8 +83,6 @@ export class TaskSorter {
 				)
 			) {
 				directlyOverlappingTasks.push(sortedTasksByDate[i]);
-			} else {
-				break;
 			}
 		}
 
