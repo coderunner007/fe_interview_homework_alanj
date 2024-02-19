@@ -1,5 +1,15 @@
 # Toggl Plan Take Home Project
 
+## Implemented features
+
+- Timeline View is shown with grid & dates
+- Fetch & display tasks from API. The date range of API is based on size of viewport.
+- Next & Previous navigation buttons which fetches previous / next month's tasks & displays them on timeline view.
+- Swimlane whose height is updated based on the lowest & highest horizontally stacked task.
+- Tasks are stacked horizontally based on weight of task w.r.t other tasks in the same date range. Higher the weight, lower the task position.
+- Drag & drop functionality which positions the task correctly in the updated time range (but not correctly positioned vertically).
+- Handle common API errors like API details not set or Authentication failed.
+
 ## The Mission
 
 Hello there future Toggl Plan Frontend Engineer! We're excited to see what you can do. Your mission, should you choose to accept it, is to replicate a simplified version of the team timeline view in [Toggl Plan](https://plan.toggl.com/). To do this you'll need to create a new Toggl Plan account on our staging server: https://plan.toggl.space and use the API to fetch the data you need.
@@ -28,6 +38,7 @@ Then start the local server:
 `pnpm run dev`
 
 Open the browser with the URL printed on the terminal, & run this JS snippet on the dev console:
+
 ```js
 
 localStorage.setItem('token', "<Auth-Token>"),

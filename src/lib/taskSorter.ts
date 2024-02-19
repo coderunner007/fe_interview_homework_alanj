@@ -12,7 +12,6 @@ export class TaskSorter {
 
 	getSortPosition(task: Task): number {
 		if (this.#cachedPositionOfTask.has(task.id)) {
-			console.log('cache hit');
 			return this.#cachedPositionOfTask.get(task.id) as number;
 		}
 

@@ -17,7 +17,7 @@
 		type Writable,
 	} from 'svelte/store';
 	import TaskOnGrid from './TaskOnGrid.svelte';
-	import { type IdToTask, type Task } from '../lib/stores';
+	import { type Task } from '../lib/stores';
 	import {
 		TIMELINE_DISPLAY_CONFIG,
 		type TimelineDisplayConfig,
@@ -27,7 +27,6 @@
 
 	export let tasks: Array<Task>;
 	$: {
-		console.log('in taskSorterUpdater');
 		swimlaneDisplayConfig.update((value) => ({
 			...value,
 			tasksSorter: new TaskSorter(tasks),
