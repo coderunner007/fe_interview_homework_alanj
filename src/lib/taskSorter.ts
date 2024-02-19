@@ -59,6 +59,40 @@ export class TaskSorter {
 		}
 	}
 
+	getAllOverlappingDateRanges(
+		task: Task,
+		sortedRanges: Array<DateRange>
+	): Array<DateRange> {
+		const dateRangeOfTask = {
+			since: task.startDate,
+			until: task.endDate,
+		};
+		const overlappingRangeIndex = sortedRanges.findIndex((dateRange) =>
+			getMergedDateRange(dateRangeOfTask, dateRange)
+		);
+
+		if (!overlappingRangeIndex) {
+			// No date ranges are overlapping
+			return [];
+		} else if (overlappingRangeIndex == sortedRanges.length - 1) {
+			// Last date range, no other date ranges can overlap
+			return [sortedRanges[overlappingRangeIndex]];
+		} else if (
+			getMergedDateRange(
+				dateRangeOfTask,
+				sortedRanges[overlappingRangeIndex + 1]
+			)
+		) {
+			// The next date range also overlaps.
+			return [
+				sortedRanges[overlappingRangeIndex],
+				sortedRanges[overlappingRangeIndex + 1],
+			];
+		} else {
+			return [sortedRanges[overlappingRangeIndex]];
+		}
+	}
+
 	getSortPosition(task: Task): number {
 		if (this.cachedPositionOfTask.has(task.id)) {
 			return this.cachedPositionOfTask.get(task.id) as number;
