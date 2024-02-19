@@ -1,105 +1,24 @@
-import {
-	getMergedDateRange,
-	getNonInterlappingDateRanges,
-	taskDateRangeComparator,
-} from './dates';
-import type { DateRange, IdToTask, Task } from './stores';
+import { getMergedDateRange, taskDateRangeComparator } from './dates';
+import type { DateRange, Task } from './stores';
 
 export class TaskSorter {
-	tasksInDateRange: Map<DateRange, Array<Task>>;
-	dateRangeOfTask: Map<number, DateRange>;
-	sortedDateRanges: Array<DateRange>;
-	sortedTasks: Array<Task>;
-	idToTask: IdToTask;
+	sortedTasksByDate: Array<Task>;
 	cachedPositionOfTask: Map<number, number>;
 
 	constructor(tasks: Array<Task>) {
-		this.sortedTasks = tasks.toSorted(taskDateRangeComparator);
-		this.sortedDateRanges = getNonInterlappingDateRanges(this.sortedTasks);
-		this.idToTask = {};
-		tasks.forEach((task) => {
-			this.idToTask[task.id] = task;
-		});
+		this.sortedTasksByDate = tasks.toSorted(taskDateRangeComparator);
 		this.cachedPositionOfTask = new Map();
-		this.tasksInDateRange = new Map();
-		this.dateRangeOfTask = new Map();
-		this.populateTaskInDateRange();
 	}
 
-	getWeightIfSortPosition(task: Task, sortPosition: number) {
-		const taskId = task.id;
-		// WRONG! Change to date range of all overlapping tasks
-		this.sortedDateRanges.findIndex((dateRange) =>
-			getMergedDateRange(
-				{
-					since: task.startDate,
-					until: task.endDate,
-				},
-				dateRange
-			)
-		);
-		const dateRangeOfTask = this.dateRangeOfTask.get(taskId);
-		if (dateRangeOfTask) {
-			const directlyOverlappingTasksSortedByWeight =
-				this.getDirectlyOverlappingTasksSortedByWeight(task);
-			if (directlyOverlappingTasksSortedByWeight.length - 1 < sortPosition) {
-				// Don't modify task weight as it's sort position is anyways
-				// below directly overlapping tasks
-				return task.weight;
-			}
-
-			const nextSortedTaskWeight =
-				directlyOverlappingTasksSortedByWeight[sortPosition].weight;
-			const prevSortedTaskWeight =
-				sortPosition - 1 > -1
-					? directlyOverlappingTasksSortedByWeight[sortPosition - 1].weight
-					: nextSortedTaskWeight - nextSortedTaskWeight / 2;
-
-			return (prevSortedTaskWeight + nextSortedTaskWeight) / 2;
-		}
-	}
-
-	getAllOverlappingDateRanges(
-		task: Task,
-		sortedRanges: Array<DateRange>
-	): Array<DateRange> {
-		const dateRangeOfTask = {
-			since: task.startDate,
-			until: task.endDate,
-		};
-		const overlappingRangeIndex = sortedRanges.findIndex((dateRange) =>
-			getMergedDateRange(dateRangeOfTask, dateRange)
-		);
-
-		if (!overlappingRangeIndex) {
-			// No date ranges are overlapping
-			return [];
-		} else if (overlappingRangeIndex == sortedRanges.length - 1) {
-			// Last date range, no other date ranges can overlap
-			return [sortedRanges[overlappingRangeIndex]];
-		} else if (
-			getMergedDateRange(
-				dateRangeOfTask,
-				sortedRanges[overlappingRangeIndex + 1]
-			)
-		) {
-			// The next date range also overlaps.
-			return [
-				sortedRanges[overlappingRangeIndex],
-				sortedRanges[overlappingRangeIndex + 1],
-			];
-		} else {
-			return [sortedRanges[overlappingRangeIndex]];
-		}
-	}
-
-	getSortPosition(task: Task): number {
+	getSortPosition(task: Task, spaces = 2): number {
 		if (this.cachedPositionOfTask.has(task.id)) {
 			return this.cachedPositionOfTask.get(task.id) as number;
 		}
 
 		const directlyOverlappingTasksSortedByWeight =
-			this.getDirectlyOverlappingTasksSortedByWeight(task);
+			this.getDirectlyOverlappingTasks(task, this.sortedTasksByDate).toSorted(
+				this.taskWeightComparator
+			);
 
 		// The sort position we get here is not complete
 		// if the sort position is greater than 0.
@@ -113,79 +32,72 @@ export class TaskSorter {
 		// then return 0.
 		// If it is anything other than 0, then recursively check the sort
 		// position of all tasks which has sort position less that this task.
-		const totalSort = partialSortPositionOfTask
-			? Math.max.apply(
-					null,
-					directlyOverlappingTasksSortedByWeight
-						.slice(0, partialSortPositionOfTask)
-						.map((t) => this.getSortPosition(t))
-				) + 1
-			: partialSortPositionOfTask;
+		const totalSort =
+			partialSortPositionOfTask > 0
+				? Math.max.apply(
+						null,
+						directlyOverlappingTasksSortedByWeight
+							.slice(0, partialSortPositionOfTask)
+							.map((t) => this.getSortPosition(t))
+					) + 1
+				: 0;
+		console.log(
+			task.weight,
+			task.name,
+			' '.padStart(spaces + 1),
+			directlyOverlappingTasksSortedByWeight.map((t) => t.name),
+			totalSort,
+			partialSortPositionOfTask
+		);
 		// memoize calculated sort position
 		this.cachedPositionOfTask.set(task.id, totalSort);
 
 		return totalSort;
 	}
 
-	getDirectlyOverlappingTasksSortedByWeight(
-		task: Task,
-		dateRangeOverride?: DateRange
-	) {
-		const dateRangeOfTask =
-			dateRangeOverride || this.dateRangeOfTask.get(task.id);
-		if (dateRangeOfTask) {
-			return (
-				(this.tasksInDateRange.get(dateRangeOfTask) || [])
-					// Get all tasks in the task's date range that is directly
-					// overlapping with this task.
-					.filter((taskInOverlappingRange) =>
-						getMergedDateRange(
-							{
-								since: task.startDate,
-								until: task.endDate,
-							},
-							{
-								since: taskInOverlappingRange.startDate,
-								until: taskInOverlappingRange.endDate,
-							}
-						)
-					)
-					// Sort those tasks that overlap with this task's date
-					// by weight
-					.toSorted(this.taskWeightComparator)
-			);
-		} else {
+	getDirectlyOverlappingTasks(task: Task, sortedTasksByDate: Array<Task>) {
+		const idx = sortedTasksByDate.findIndex((t) => t.id == task.id);
+		if (idx == -1) {
 			return [];
 		}
+
+		const directlyOverlappingTasks = [task];
+		for (let i = idx + 1; i < sortedTasksByDate.length; i++) {
+			if (
+				getMergedDateRange(
+					this.getDateRangeOfTask(task),
+					this.getDateRangeOfTask(sortedTasksByDate[i])
+				)
+			) {
+				directlyOverlappingTasks.push(sortedTasksByDate[i]);
+			} else {
+				break;
+			}
+		}
+		for (let i = idx - 1; i >= 0; i--) {
+			if (
+				getMergedDateRange(
+					this.getDateRangeOfTask(task),
+					this.getDateRangeOfTask(sortedTasksByDate[i])
+				)
+			) {
+				directlyOverlappingTasks.push(sortedTasksByDate[i]);
+			} else {
+				break;
+			}
+		}
+
+		return directlyOverlappingTasks;
+	}
+
+	getDateRangeOfTask(task: Task): DateRange {
+		return {
+			since: task.startDate,
+			until: task.endDate,
+		};
 	}
 
 	taskWeightComparator(task1: Task, task2: Task) {
 		return task1.weight - task2.weight;
-	}
-
-	populateTaskInDateRange() {
-		let dateRangeIdx = 0;
-		this.sortedTasks.forEach((task) => {
-			let currentDateRange = this.sortedDateRanges[dateRangeIdx];
-			if (
-				getMergedDateRange(currentDateRange, {
-					since: task.startDate,
-					until: task.endDate,
-				})
-			) {
-				// Task is present in current date range,
-				this.tasksInDateRange.set(currentDateRange, [
-					...(this.tasksInDateRange.get(currentDateRange) || []),
-					task,
-				]);
-				this.dateRangeOfTask.set(task.id, currentDateRange);
-			} else {
-				// Task is not present in current date range,
-				// Move to the next range
-				currentDateRange = this.sortedDateRanges[++dateRangeIdx];
-				this.dateRangeOfTask.set(task.id, currentDateRange);
-				this.tasksInDateRange.set(currentDateRange, [task]);
-			}
-		});
 	}
 }
