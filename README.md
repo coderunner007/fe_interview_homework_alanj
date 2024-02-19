@@ -27,6 +27,14 @@ Then start the local server:
 
 `pnpm run dev`
 
+Open the browser with the URL printed on the terminal, & run this JS snippet on the dev console:
+```js
+
+localStorage.setItem('token', "<Auth-Token>"),
+localStorage.setItem('teamId', "<Team-id>"),
+localStorage.setItem('workspaceId', "<Workspace-id>"),
+```
+
 Please remember to commit often so we can see how you're doing 🙌
 
 ## Deploy
