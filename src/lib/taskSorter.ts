@@ -13,9 +13,9 @@ export class TaskSorter {
 	getWeightIfSortedPosition(task: Task, sortPosition: number): number {
 		// There might be edge case when task is re-sorted in same position
 		const directlyOverlappingTasksSortedByWeight =
-			this.#getDirectlyOverlappingTasks(task, this.#sortedTasksByDate).toSorted(
-				this.#taskWeightComparator
-			);
+			this.#getDirectlyOverlappingTasks(task, this.#sortedTasksByDate)
+				.toSorted(this.#taskWeightComparator)
+				.filter((t) => t.id != task.id);
 		if (!directlyOverlappingTasksSortedByWeight.length) {
 			// No overlapping task, current weight is fine
 			return task.weight;
@@ -36,7 +36,8 @@ export class TaskSorter {
 			);
 		const idxOfSortOrderOfNextCompetingTask =
 			sortOrderOfOverlappingTasks.findIndex(
-				(sortOrder) => sortPosition <= sortOrder
+				(sortOrder) =>
+					sortPosition <= sortOrder && sortOrderToTask[sortOrder].id != task.id
 			);
 		if (idxOfSortOrderOfNextCompetingTask == -1) {
 			// No tasks will have sort order larger than this task,
@@ -59,10 +60,10 @@ export class TaskSorter {
 			// hence return a weight that is half of both
 			return (
 				(sortOrderToTask[
-					sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length]
+					sortOrderOfOverlappingTasks[idxOfSortOrderOfNextCompetingTask]
 				].weight +
 					sortOrderToTask[
-						sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length - 1]
+						sortOrderOfOverlappingTasks[idxOfSortOrderOfNextCompetingTask - 1]
 					].weight) /
 				2
 			);
