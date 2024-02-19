@@ -10,7 +10,12 @@
 </script>
 
 <script lang="ts">
-	import { type Readable, readable } from 'svelte/store';
+	import {
+		type Readable,
+		readonly,
+		writable,
+		type Writable,
+	} from 'svelte/store';
 	import TaskOnGrid from './TaskOnGrid.svelte';
 	import { type IdToTask, type Task } from '../lib/stores';
 	import {
@@ -28,14 +33,21 @@
 	let timelineDisplayConfig: Readable<TimelineDisplayConfig> = getContext(
 		TIMELINE_DISPLAY_CONFIG
 	);
-	const swimlaneDisplayConfig: Readable<SwimlaneDisplayConfig> = readable({
+	const swimlaneDisplayConfig: Writable<SwimlaneDisplayConfig> = writable({
 		taskMargin: 2,
 		taskHeight: 42,
 		swimlaneOffsetFromTop: 20,
 		swimlaneMarginTop: 20,
 		tasksSorter: new TaskSorter(Object.values(tasks)),
 	});
-	setContext(SWIMLANE_DISPLAY_CONFIG, swimlaneDisplayConfig);
+	setContext(SWIMLANE_DISPLAY_CONFIG, readonly(swimlaneDisplayConfig));
+	$: {
+		console.log('in taskSorterUpdater');
+		swimlaneDisplayConfig.update((value) => ({
+			...value,
+			tasksSorter: new TaskSorter(Object.values(tasks)),
+		}));
+	}
 
 	let highestSortedPositionOfTasks = 1;
 
