@@ -10,6 +10,65 @@ export class TaskSorter {
 		this.#cachedPositionOfTask = new Map();
 	}
 
+	getWeightIfSortedPosition(task: Task, sortPosition: number): number {
+		// There might be edge case when task is re-sorted in same position
+		const directlyOverlappingTasksSortedByWeight =
+			this.#getDirectlyOverlappingTasks(task, this.#sortedTasksByDate).toSorted(
+				this.#taskWeightComparator
+			);
+		if (!directlyOverlappingTasksSortedByWeight.length) {
+			// No overlapping task, current weight is fine
+			return task.weight;
+		}
+		const sortOrderOfOverlappingTasks =
+			directlyOverlappingTasksSortedByWeight.map((t) =>
+				this.getSortPosition(t)
+			);
+		const sortOrderToTask: Record<number, Task> =
+			directlyOverlappingTasksSortedByWeight.reduce(
+				(acc, t) => {
+					return {
+						...acc,
+						[this.getSortPosition(t)]: t,
+					};
+				},
+				{} as Record<number, Task>
+			);
+		const idxOfSortOrderOfNextCompetingTask =
+			sortOrderOfOverlappingTasks.findIndex(
+				(sortOrder) => sortPosition <= sortOrder
+			);
+		if (idxOfSortOrderOfNextCompetingTask == -1) {
+			// No tasks will have sort order larger than this task,
+			// hence return largest task's weight + 1
+			return (
+				sortOrderToTask[
+					sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length - 1]
+				].weight + 1
+			);
+		} else if (idxOfSortOrderOfNextCompetingTask == 0) {
+			// No tasks will have sort order less than this task,
+			// hence return smallest task's weight - 1
+			return (
+				sortOrderToTask[
+					sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length - 1]
+				].weight - 1
+			);
+		} else {
+			// This task will be inserted between 2 tasks,
+			// hence return a weight that is half of both
+			return (
+				(sortOrderToTask[
+					sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length]
+				].weight +
+					sortOrderToTask[
+						sortOrderOfOverlappingTasks[sortOrderOfOverlappingTasks.length - 1]
+					].weight) /
+				2
+			);
+		}
+	}
+
 	getSortPosition(task: Task): number {
 		if (this.#cachedPositionOfTask.has(task.id)) {
 			return this.#cachedPositionOfTask.get(task.id) as number;

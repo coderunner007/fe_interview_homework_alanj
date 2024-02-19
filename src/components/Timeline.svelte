@@ -75,7 +75,7 @@
 				const taskFromDrop = parsedTransferredObject.task;
 
 				uncommitedTasks.update((value) => {
-					value![taskFromDrop.id] = {
+					const updatedTask = {
 						...taskFromDrop,
 						startDate: getDateAfterMove(
 							taskFromDrop.startDate,
@@ -87,6 +87,10 @@
 							movedByX,
 							$timelineDisplayConfig.dateCellWidthOnGrid
 						),
+					};
+					value![taskFromDrop.id] = {
+						...updatedTask,
+						weight: 3,
 					};
 
 					return value;
