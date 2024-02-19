@@ -22,12 +22,12 @@
 	function getDaySpecificCSS(date: Date) {
 		if (date.getDay() == 0 || date.getDay() == 6) {
 			// For weekends
-			return 'text-slate-500';
+			return 'text-slate-500 font-light';
 		} else if (date.toDateString() == new Date().toDateString()) {
 			// Today
 			return 'text-orange-400 font-extrabold';
 		} else {
-			return '';
+			return 'font-extralight ';
 		}
 	}
 </script>
@@ -43,7 +43,7 @@
 		<!-- Show month indicator on the first day of the month or the first date displayed-->
 		<div
 			style:left="{idx * $timelineDisplayConfig.dateCellWidthOnGrid}px"
-			class="absolute top-0 h-1 text-xs font-extralight uppercase text-fuchsia-950">
+			class="absolute top-0 h-1 text-xs uppercase text-fuchsia-950">
 			{MONTHS_OF_THE_YEAR[date.getMonth()]}
 		</div>
 	{/if}

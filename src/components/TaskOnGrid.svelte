@@ -10,7 +10,7 @@
 	import {
 		SWIMLANE_DISPLAY_CONFIG,
 		type SwimlaneDisplayConfig,
-	} from './Swimlanes.svelte';
+	} from './Swimlane.svelte';
 
 	export let task: Task;
 	export let updateSwimlaneHeight: (sortPositionOfTask: number) => void;
