@@ -9,15 +9,6 @@
 	import { getContext } from 'svelte';
 
 	export let tasks: Array<Task>;
-<<<<<<< HEAD
-	$: {
-		swimlaneDisplayConfig.update((value) => ({
-			...value,
-			tasksSorter: new TaskSorter(tasks),
-		}));
-	}
-=======
->>>>>>> c561e89 (Refactor to move timelineDisplayConfig to Timeline from Swimlane)
 
 	let timelineDisplayConfig: Readable<TimelineDisplayConfig> = getContext(
 		TIMELINE_DISPLAY_CONFIG
