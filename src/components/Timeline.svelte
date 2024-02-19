@@ -25,7 +25,7 @@
 		getLengthOfDateRange,
 	} from '../lib/dates';
 	import TimelineGrid from './TimelineGrid.svelte';
-	import Swimlanes from './Swimlanes.svelte';
+	import Swimlanes from './Swimlane.svelte';
 	import { readonly, writable, type Writable } from 'svelte/store';
 
 	export let displayConfig: TimelineDisplayConfig;
