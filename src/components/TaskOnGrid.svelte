@@ -40,7 +40,7 @@
 	function getTaskTopPosition(task: Task) {
 		const sortedPosition =
 			$timelineDisplayConfig?.tasksSorter?.getSortPosition(task) || 0;
-		console.log(task.name, sortedPosition);
+		if (task.id == 20588665) console.log(task, sortedPosition);
 
 		updateSwimlaneHeight(sortedPosition);
 
