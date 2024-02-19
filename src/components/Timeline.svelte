@@ -104,12 +104,13 @@
 		class="timeline grid h-screen grid-rows-[60px_1fr] overflow-hidden overflow-x-auto">
 		<div class="w-full border-b border-b-slate-300">
 			<button
-				class="absolute left-[60px]"
-				on:click={() => populateTasksAndUpdateGrid(false)}
-				>Previous 30 days</button>
+				class="absolute left-[60px] m-1 rounded-md bg-indigo-500 p-2 font-bold text-white"
+				on:click={() => populateTasksAndUpdateGrid(false)}>Previous</button>
 			<button
-				class="absolute right-0"
-				on:click={() => populateTasksAndUpdateGrid(true)}>Next 30 days</button>
+				class="absolute right-0 m-1 rounded-md bg-indigo-500 p-2 font-bold text-white"
+				on:click={() => populateTasksAndUpdateGrid(true)}
+				>Next
+			</button>
 		</div>
 		<div class="relative">
 			<TimelineGrid />
