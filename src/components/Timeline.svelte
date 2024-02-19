@@ -51,7 +51,6 @@
 			($tasksStore ? getLengthOfDateRange($tasksStore?.dateRange) + 1 : 0) *
 			$timelineDisplayConfig.dateCellWidthOnGrid;
 		if ($tasksStore?.tasks) {
-			console.log('task store updated');
 			$timelineDisplayConfig.tasksSorter = new TaskSorter(
 				Object.values($tasksStore.tasks)
 			);
@@ -102,24 +101,13 @@
 							$timelineDisplayConfig.dateCellWidthOnGrid
 						),
 					};
-					console.log('before weight', updatedTask);
-					const weight =
-						$timelineDisplayConfig.tasksSorter?.getWeightIfSortedPosition(
-							updatedTask,
-							3
-						);
-					console.log('after weight', updatedTask, weight);
-					value![taskFromDrop.id] = {
-						...updatedTask,
-					};
+					value![taskFromDrop.id] = updatedTask;
 
 					return value;
 				});
 			} catch (e) {
 				console.log('Error doing parsing on drop', e);
 			}
-
-			console.log('on drop');
 		}
 	}
 </script>

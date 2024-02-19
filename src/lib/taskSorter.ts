@@ -44,12 +44,6 @@ export class TaskSorter {
 				(sortOrder) =>
 					sortPosition <= sortOrder && sortOrderToTask[sortOrder].id != task.id
 			);
-		console.log('---');
-		console.log(task);
-		console.log(directlyOverlappingTasksSortedByWeight);
-		console.log(sortOrderOfOverlappingTasks);
-		console.log(idxOfSortOrderOfNextCompetingTask);
-		console.log('---');
 		if (idxOfSortOrderOfNextCompetingTask == -1) {
 			// No tasks will have sort order larger than this task,
 			// hence return largest task's weight + 1
@@ -83,7 +77,6 @@ export class TaskSorter {
 
 	getSortPosition(task: Task): number {
 		if (this.#cachedPositionOfTask.has(task.id)) {
-			if (task.id == 20588665) console.log(task, 'is cache hit');
 			return this.#cachedPositionOfTask.get(task.id) as number;
 		}
 
@@ -116,12 +109,6 @@ export class TaskSorter {
 		// memoize calculated sort position
 		this.#cachedPositionOfTask.set(task.id, totalSort);
 
-		if (task.id == 20588665)
-			console.log(
-				'sort position',
-				task,
-				directlyOverlappingTasksSortedByWeight
-			);
 		return totalSort;
 	}
 

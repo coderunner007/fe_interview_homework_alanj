@@ -40,8 +40,6 @@
 	function getTaskTopPosition(task: Task) {
 		const sortedPosition =
 			$timelineDisplayConfig?.tasksSorter?.getSortPosition(task) || 0;
-		if (task.id == 20588665) console.log(task, sortedPosition);
-
 		updateSwimlaneHeight(sortedPosition);
 
 		return (
@@ -105,7 +103,6 @@
 	}
 
 	function onDragEnd() {
-		console.log('on drage end');
 		movedByX = 0;
 	}
 </script>
