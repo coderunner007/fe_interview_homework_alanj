@@ -1,49 +1,27 @@
-<script context="module" lang="ts">
-	export type SwimlaneDisplayConfig = {
-		taskMargin: number;
-		taskHeight: number;
-		tasksSorter: TaskSorter;
-		swimlaneOffsetFromTop: number;
-		swimlaneMarginTop: number;
-	};
-	export const SWIMLANE_DISPLAY_CONFIG = 'swimlaneDisplayConfig';
-</script>
-
 <script lang="ts">
-	import {
-		type Readable,
-		readonly,
-		writable,
-		type Writable,
-	} from 'svelte/store';
+	import { type Readable } from 'svelte/store';
 	import TaskOnGrid from './TaskOnGrid.svelte';
 	import { type Task } from '../lib/stores';
 	import {
 		TIMELINE_DISPLAY_CONFIG,
 		type TimelineDisplayConfig,
 	} from './Timeline.svelte';
-	import { getContext, setContext } from 'svelte';
-	import { TaskSorter } from '../lib/taskSorter';
+	import { getContext } from 'svelte';
 
 	export let tasks: Array<Task>;
+<<<<<<< HEAD
 	$: {
 		swimlaneDisplayConfig.update((value) => ({
 			...value,
 			tasksSorter: new TaskSorter(tasks),
 		}));
 	}
+=======
+>>>>>>> c561e89 (Refactor to move timelineDisplayConfig to Timeline from Swimlane)
 
 	let timelineDisplayConfig: Readable<TimelineDisplayConfig> = getContext(
 		TIMELINE_DISPLAY_CONFIG
 	);
-	const swimlaneDisplayConfig: Writable<SwimlaneDisplayConfig> = writable({
-		taskMargin: 2,
-		taskHeight: 42,
-		swimlaneOffsetFromTop: 20,
-		swimlaneMarginTop: 20,
-		tasksSorter: new TaskSorter(tasks),
-	});
-	setContext(SWIMLANE_DISPLAY_CONFIG, readonly(swimlaneDisplayConfig));
 
 	let highestSortedPositionOfTasks = 1;
 
@@ -58,11 +36,11 @@
 <div>
 	<div
 		style:top="{$timelineDisplayConfig.dateRowHeight +
-			$swimlaneDisplayConfig.swimlaneOffsetFromTop}px"
-		style:height="{($swimlaneDisplayConfig.taskHeight +
-			$swimlaneDisplayConfig.taskMargin * 2) *
+			$timelineDisplayConfig.swimlaneOffsetFromTop}px"
+		style:height="{($timelineDisplayConfig.taskHeight +
+			$timelineDisplayConfig.taskMargin * 2) *
 			(highestSortedPositionOfTasks + 1) +
-			$swimlaneDisplayConfig.swimlaneMarginTop * 2}px"
+			$timelineDisplayConfig.swimlaneMarginTop * 2}px"
 		class="pointer-events-none absolute right-0 min-h-10 w-full border-slate-400 bg-gray-200 opacity-40">
 	</div>
 	{#each tasks as task (task.id)}

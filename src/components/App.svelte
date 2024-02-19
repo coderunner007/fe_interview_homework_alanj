@@ -10,6 +10,10 @@
 		dateCellWidthOnGrid: 54,
 		dateRowHeight: 40,
 		sidebarWidth,
+		taskMargin: 2,
+		taskHeight: 42,
+		swimlaneOffsetFromTop: 20,
+		swimlaneMarginTop: 20,
 	};
 	let applicationError: Error;
 

@@ -7,10 +7,6 @@
 		type TimelineDisplayConfig,
 	} from './Timeline.svelte';
 	import { getContext } from 'svelte';
-	import {
-		SWIMLANE_DISPLAY_CONFIG,
-		type SwimlaneDisplayConfig,
-	} from './Swimlane.svelte';
 
 	export let task: Task;
 	export let updateSwimlaneHeight: (sortPositionOfTask: number) => void;
@@ -20,9 +16,6 @@
 
 	let timelineDisplayConfig: Readable<TimelineDisplayConfig> = getContext(
 		TIMELINE_DISPLAY_CONFIG
-	);
-	let swimlaneDisplayConfig: Readable<SwimlaneDisplayConfig> = getContext(
-		SWIMLANE_DISPLAY_CONFIG
 	);
 	const TASK_STATUS_TO_STATUS_EMOJI = {
 		[TaskStatus.BLOCKED as string]: '🚫',
@@ -40,22 +33,23 @@
 				task.startDate
 			) *
 				$timelineDisplayConfig.dateCellWidthOnGrid +
-			$swimlaneDisplayConfig.taskMargin
+			$timelineDisplayConfig.taskMargin
 		);
 	}
 
 	function getTaskTopPosition(task: Task) {
 		const sortedPosition =
-			$swimlaneDisplayConfig.tasksSorter.getSortPosition(task) || 0;
+			$timelineDisplayConfig?.tasksSorter?.getSortPosition(task) || 0;
+		console.log(task.name, sortedPosition);
 
 		updateSwimlaneHeight(sortedPosition);
 
 		return (
-			$swimlaneDisplayConfig.swimlaneMarginTop +
-			$swimlaneDisplayConfig.swimlaneOffsetFromTop +
+			$timelineDisplayConfig.swimlaneMarginTop +
+			$timelineDisplayConfig.swimlaneOffsetFromTop +
 			sortedPosition *
-				($swimlaneDisplayConfig.taskHeight +
-					$swimlaneDisplayConfig.taskMargin * 2) +
+				($timelineDisplayConfig.taskHeight +
+					$timelineDisplayConfig.taskMargin * 2) +
 			$timelineDisplayConfig.dateRowHeight
 		);
 	}
@@ -75,7 +69,7 @@
 			return ($timelineDisplayConfig.gridWidth || 0) - taskLeftPosition;
 		} else {
 			// subtract left & right margins from width
-			return totalWidthOfTask - $swimlaneDisplayConfig.taskMargin * 2;
+			return totalWidthOfTask - $timelineDisplayConfig.taskMargin * 2;
 		}
 	}
 
@@ -119,7 +113,7 @@
 	<div
 		class="pointer-events-none absolute h-5 rounded-sm bg-indigo-400 opacity-20"
 		style:width="{getTaskWidth(task)}px"
-		style:height="{$swimlaneDisplayConfig.taskHeight}px"
+		style:height="{$timelineDisplayConfig.taskHeight}px"
 		style:top="{getTaskTopPosition({
 			...task,
 			startDate: getDateAfterMove(
@@ -161,7 +155,7 @@
 		: ''}"
 	style:top="{getTaskTopPosition(task)}px"
 	style:left="{getTaskLeftPosition(task)}px"
-	style:height="{$swimlaneDisplayConfig.taskHeight}px"
+	style:height="{$timelineDisplayConfig.taskHeight}px"
 	style:width="{getTaskWidth(task)}px">
 	<span class="whitespace-nowrap">
 		{#if task.status == TaskStatus.BLOCKED || task.status == TaskStatus.IN_PROGRESS}

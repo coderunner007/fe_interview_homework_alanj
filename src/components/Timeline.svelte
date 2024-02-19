@@ -7,6 +7,11 @@
 		displayedDates?: DateRange;
 		onDragOver?: (event: DragEvent) => void;
 		onDrop?: (event: DragEvent) => void;
+		taskMargin: number;
+		taskHeight: number;
+		tasksSorter?: TaskSorter;
+		swimlaneOffsetFromTop: number;
+		swimlaneMarginTop: number;
 	};
 	export const TIMELINE_DISPLAY_CONFIG = 'timelineDisplayConfig';
 </script>
@@ -27,6 +32,7 @@
 	import TimelineGrid from './TimelineGrid.svelte';
 	import Swimlanes from './Swimlane.svelte';
 	import { readonly, writable, type Writable } from 'svelte/store';
+	import { TaskSorter } from '../lib/taskSorter';
 
 	export let displayConfig: TimelineDisplayConfig;
 
@@ -37,12 +43,19 @@
 	});
 	setContext(TIMELINE_DISPLAY_CONFIG, readonly(timelineDisplayConfig));
 
-	$: $timelineDisplayConfig.displayedDates = $tasksStore?.dateRange;
-	$: $timelineDisplayConfig.gridWidth =
-		// Add 1 because both since & until dates
-		// are included while displaying the grid
-		($tasksStore ? getLengthOfDateRange($tasksStore?.dateRange) + 1 : 0) *
-		$timelineDisplayConfig.dateCellWidthOnGrid;
+	$: {
+		$timelineDisplayConfig.displayedDates = $tasksStore?.dateRange;
+		$timelineDisplayConfig.gridWidth =
+			// Add 1 because both since & until dates
+			// are included while displaying the grid
+			($tasksStore ? getLengthOfDateRange($tasksStore?.dateRange) + 1 : 0) *
+			$timelineDisplayConfig.dateCellWidthOnGrid;
+		if ($tasksStore?.tasks) {
+			$timelineDisplayConfig.tasksSorter = new TaskSorter(
+				Object.values($tasksStore.tasks)
+			);
+		}
+	}
 
 	async function populateTasksAndUpdateGrid(isForward: boolean) {
 		try {
