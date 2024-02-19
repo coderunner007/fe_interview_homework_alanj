@@ -111,7 +111,6 @@
 					console.log('after weight', updatedTask, weight);
 					value![taskFromDrop.id] = {
 						...updatedTask,
-						weight,
 					};
 
 					return value;
