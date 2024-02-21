@@ -40,10 +40,11 @@ Then start the local server:
 Open the browser with the URL printed on the terminal, & run this JS snippet on the dev console:
 
 ```js
-
-localStorage.setItem('token', "<Auth-Token>"),
-localStorage.setItem('teamId', "<Team-id>"),
-localStorage.setItem('workspaceId', "<Workspace-id>"),
+// Note that the string 'Bearer ' must be prefixed to the
+// <Auth-Token> token similar to the "Authorization" request header.
+localStorage.setItem('token', "Bearer <Auth-Token>");
+localStorage.setItem('teamId', "<Team-id>");
+localStorage.setItem('workspaceId', "<Workspace-id>");
 ```
 
 Please remember to commit often so we can see how you're doing 🙌
